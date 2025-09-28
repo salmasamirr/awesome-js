@@ -1,0 +1,12 @@
+{
+    "title": { "text": "Effect Scatter Example" },
+    "xAxis": {},
+    "yAxis": {},
+    "series": [
+      {
+        "type": "effectScatter",
+        "data": [[12, 25], [30, 40]],
+        "rippleEffect": { "scale": 2.5, "brushType": "stroke" }
+      }
+    ]
+}

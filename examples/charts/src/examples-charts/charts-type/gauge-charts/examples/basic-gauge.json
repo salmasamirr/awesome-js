@@ -1,0 +1,22 @@
+{
+ "title": {
+    "text": "Basic Gauge Example" },
+  "series": [
+    {
+      "type": "gauge",
+      "progress": {
+        "show": true
+      },
+      "detail": {
+        "valueAnimation": true,
+        "formatter": "{value}%"
+      },
+      "data": [
+        {
+          "value": 65,
+          "name": "Completion"
+        }
+      ]
+    }
+  ]
+}

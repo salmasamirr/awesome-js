@@ -1,0 +1,14 @@
+{
+  "title": "Large Scatter Chart Schema",
+  "allOf": [{ "$ref": "./scatter-base.json" }],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "large": { "type": "boolean" },
+          "largeThreshold": { "type": "number" }
+        }
+      }
+    }
+  }
+}

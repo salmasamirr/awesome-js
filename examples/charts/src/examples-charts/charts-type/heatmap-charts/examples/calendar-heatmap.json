@@ -1,0 +1,11 @@
+{
+    "calendar": { "range": "2025", "cellSize": [20, 20] },
+    "series": [
+      {
+        "type": "heatmap",
+        "coordinateSystem": "calendar",
+        "data": [["2025-01-01", 80], ["2025-01-02", 50]]
+      }
+    ]
+  
+}

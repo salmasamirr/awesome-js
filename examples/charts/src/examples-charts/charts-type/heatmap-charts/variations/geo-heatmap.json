@@ -1,0 +1,10 @@
+{
+  "variation": "geo-heatmap",
+  "extra": {
+    "series": [
+      {
+        "coordinateSystem": "geo"
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "sankey",
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "sankey" },
+          "data": { "type": "array" },
+          "links": { "type": "array" }
+        }
+      }
+    }
+  }
+}

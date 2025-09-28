@@ -1,0 +1,10 @@
+{
+  "title": "Smooth Area Chart",
+  "series": [
+    {
+      "type": "line",
+      "smooth": true,
+      "areaStyle": {}
+    }
+  ]
+}

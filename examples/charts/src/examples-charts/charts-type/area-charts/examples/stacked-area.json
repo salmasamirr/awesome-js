@@ -1,0 +1,17 @@
+{
+    "title": { "text": "Stacked Area" },
+    "tooltip": { "trigger": "axis" },
+    "legend": { "data": ["Email", "Affiliate", "Video Ads", "Direct", "Search"] },
+    "xAxis": {
+      "type": "category",
+      "boundaryGap": false,
+      "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    },
+    "yAxis": { "type": "value" },
+    "series": [
+      { "name": "Email", "type": "line", "stack": "Total", "areaStyle": {}, "data": [120, 132, 101, 134, 90, 230, 210] },
+      { "name": "Affiliate", "type": "line", "stack": "Total", "areaStyle": {}, "data": [220, 182, 191, 234, 290, 330, 310] },
+      { "name": "Video Ads", "type": "line", "stack": "Total", "areaStyle": {}, "data": [150, 232, 201, 154, 190, 330, 410] }
+    ]
+  
+}

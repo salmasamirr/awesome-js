@@ -1,0 +1,10 @@
+{
+  "variation": "treemap-drilldown",
+  "extra": {
+    "series": [
+      {
+        "breadcrumb": { "show": true }
+      }
+    ]
+  }
+}

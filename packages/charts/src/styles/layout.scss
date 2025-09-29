@@ -1,0 +1,18 @@
+// grid
+.container {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+
+.layout__main {
+  grid-column: span 8;
+}
+
+.layout__sidebar {
+  grid-column: span 4;
+}
+// spacing
+.m-16 { margin: 16px !important; }
+.p-16 { padding: 16px !important; }
+.gap-8 { gap: 8px; }

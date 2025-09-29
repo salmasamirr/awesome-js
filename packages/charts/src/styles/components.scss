@@ -35,48 +35,4 @@
   color: $text-secondary;
 }
 
-.chat-window {
-  position: fixed;
-  bottom: 16px;
-  left: 16px;
-  width: 300px;
-  max-height: 400px;
-  background: var(--background);
-  border: 1px solid #DFE1E6;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  overflow: hidden;
 
-  .messages {
-    flex: 1;
-    padding: 8px;
-    overflow-y: auto;
-  }
-
-  .message {
-    padding: 8px;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    background: var(--primary, rgba(0,82,204,0.1));
-    color: var(--text-primary);
-  }
-
-  input {
-    border: 1px solid #DFE1E6;
-    padding: 8px;
-    margin: 8px;
-    border-radius: 8px;
-  }
-
-  button {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 8px;
-    margin: 8px;
-    cursor: pointer;
-  }
-}

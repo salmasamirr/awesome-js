@@ -1,0 +1,12 @@
+.charts-demo-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .charts-demo-container {
+    grid-template-columns: 1fr; /* stacked for mobile */
+  }
+}

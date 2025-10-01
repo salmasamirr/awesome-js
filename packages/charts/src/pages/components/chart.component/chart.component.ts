@@ -3,7 +3,7 @@ import * as echarts from 'echarts/core';
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 import { CanvasRenderer } from 'echarts/renderers';
-import { ChatComponent } from '../chat/chat.component';
+import { ChatComponent } from '../../components/chat.component';
 import { DataService } from '../../common/services/data.service';
 
 echarts.use([CanvasRenderer]);
@@ -71,7 +71,7 @@ const chartImporters: Record<string, () => Promise<any>> = {
 };
 
 @Component({
-  selector: 'app-charts',
+  selector: 'charts',
   standalone: true,
   imports: [NgxEchartsDirective, ChatComponent],
   templateUrl: './chart.component.html',

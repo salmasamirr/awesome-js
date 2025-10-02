@@ -1,0 +1,32 @@
+{
+ "title": {
+    "text": "Multi Gauge Example"},
+  "series": [
+    {
+      "type": "gauge",
+      "center": ["25%", "50%"],
+      "progress": {
+        "show": true },
+      "data": [
+        {
+          "value": 70,
+          "name": "CPU" }
+      ],
+      "detail": {
+        "formatter": "{value}%" }
+    },
+    {
+      "type": "gauge",
+      "center": ["75%", "50%"],
+      "progress": {
+        "show": true},
+      "data": [
+        {"value": 45,
+         "name": "Memory"}
+      ],
+      "detail": {
+        "formatter": "{value}%"
+      }
+    }
+  ]
+}

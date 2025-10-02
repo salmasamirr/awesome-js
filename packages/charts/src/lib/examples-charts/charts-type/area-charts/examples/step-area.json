@@ -1,0 +1,19 @@
+{
+    "title": { "text": "Step Area" },
+    "tooltip": { "trigger": "axis" },
+    "xAxis": {
+      "type": "category",
+      "boundaryGap": false,
+      "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    },
+    "yAxis": { "type": "value" },
+    "series": [
+      {
+        "name": "Series 1",
+        "type": "line",
+        "step": "middle",
+        "areaStyle": {},
+        "data": [300, 400, 350, 500, 490, 600, 700]
+      }
+    ]
+}

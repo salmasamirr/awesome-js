@@ -1,0 +1,4 @@
+{
+  "title": "Basic Bar Chart",
+  "allOf": [{ "$ref": "../../../types/bar/schema.json" }]
+}

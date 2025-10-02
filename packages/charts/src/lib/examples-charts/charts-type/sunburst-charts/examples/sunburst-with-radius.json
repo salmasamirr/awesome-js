@@ -1,0 +1,13 @@
+{
+    "title": { "text": "Sunburst Radius Variation" },
+    "series": [
+      {
+        "type": "sunburst",
+        "radius": [0, "90%"],
+        "data": [
+          { "name": "A", "children": [{ "name": "A1", "value": 4 }, { "name": "A2", "value": 6 }] },
+          { "name": "B", "value": 10 }
+        ]
+      }
+    ]
+}

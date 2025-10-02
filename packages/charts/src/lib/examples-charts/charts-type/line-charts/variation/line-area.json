@@ -1,0 +1,13 @@
+{
+  "title": "Area Line Schema",
+  "allOf": [{ "$ref": "./base-line.schema.json" }],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "areaStyle": { "type": "object" }
+        }
+      }
+    }
+  }
+}

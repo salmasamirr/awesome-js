@@ -1,0 +1,32 @@
+{
+  "title": "Pie Chart Base Schema",
+  "allOf": [{ "$ref": "../super-base/schema.json" }],
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "pie" },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": { "type": "number" },
+                "name": { "type": "string" }
+              },
+              "required": ["value", "name"]
+            }
+          },
+          "radius": { "type": ["string", "array"] },
+          "center": { "type": "array" },
+          "roseType": { "type": "string", "enum": ["radius", "area"] },
+          "label": { "type": "object" },
+          "emphasis": { "type": "object" }
+        },
+        "required": ["type", "data"]
+      }
+    }
+  }
+}

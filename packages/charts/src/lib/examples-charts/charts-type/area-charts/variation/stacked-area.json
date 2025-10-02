@@ -1,0 +1,10 @@
+{
+  "title": "Stacked Area Chart",
+  "series": [
+    {
+      "type": "line",
+      "stack": "total",
+      "areaStyle": {}
+    }
+  ]
+}

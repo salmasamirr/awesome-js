@@ -1,0 +1,15 @@
+{
+  "type": "boxplot",
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "boxplot" },
+          "data": { "type": "array" }
+        }
+      }
+    }
+  }
+}

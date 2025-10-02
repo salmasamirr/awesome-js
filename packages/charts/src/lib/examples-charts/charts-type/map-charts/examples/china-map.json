@@ -1,0 +1,10 @@
+{
+    "series": [{
+      "type": "map",
+      "map": "china",
+      "data": [
+        { "name": "Beijing", "value": 200 },
+        { "name": "Shanghai", "value": 300 }
+      ]
+    }]
+}

@@ -1,0 +1,9 @@
+{
+  "variation": "multiple-boxplots",
+  "extra": {
+    "series": [
+      { "name": "Group A", "type": "boxplot" },
+      { "name": "Group B", "type": "boxplot" }
+    ]
+  }
+}

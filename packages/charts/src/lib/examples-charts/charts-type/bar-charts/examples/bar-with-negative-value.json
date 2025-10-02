@@ -1,0 +1,8 @@
+  {
+    "title": { "text": "Negative Bar Example" },
+    "xAxis": { "type": "value" },
+    "yAxis": { "data": ["Profit", "Loss", "Cost", "Revenue"] },
+    "series": [
+      { "type": "bar", "data": [200, -120, -50, 300] }
+    ]
+  }

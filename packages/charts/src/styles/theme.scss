@@ -1,0 +1,24 @@
+// Colors
+$background: #F4F5F7;
+$primary: #0052CC;
+$secondary: #36B37E;
+$text-primary: #172B4D;
+$text-secondary: #6B778C;
+$error: #FF5630;
+$success: #36B37E;
+
+// Typography
+$font-family: 'Inter, sans-serif';
+$h1-size: 32px; $h1-weight: bold;
+$h2-size: 24px; $h2-weight: bold;
+$h3-size: 20px; $h3-weight: medium;
+$body-size: 16px; $body-weight: normal;
+$small-size: 14px; $small-weight: normal;
+
+
+// mixins
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

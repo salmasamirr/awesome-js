@@ -1,0 +1,4 @@
+{
+  "title": "Basic Candlestick Chart",
+  "series": [{ "type": "candlestick" }]
+}

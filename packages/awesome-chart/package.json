@@ -1,0 +1,22 @@
+{
+  "name": "@awesome/charts",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json"
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.3.0",
+    "echarts": "^6.0.0",
+    "@angular/core": "^20.3.0"
+  },
+  "dependencies": {
+    "@angular/forms": "^20.3.4",
+    "ajv-formats": "^3.0.1",
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/echarts": "^4.9.22",
+    "ng-packagr": "^20.3.0"
+  }
+}

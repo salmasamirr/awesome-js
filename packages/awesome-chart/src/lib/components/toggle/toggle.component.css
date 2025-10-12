@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+.toggle-container {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #DFE1E6;
+  background: #fff;
+  cursor: pointer;
+}
+
+button.active {
+  background: var(--primary, #3f51b5);
+  color: #fff;
+}

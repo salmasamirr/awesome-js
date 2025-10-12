@@ -1,0 +1,67 @@
+<div class="charts">
+  <!-- Main Content -->
+  <div class="charts__main">
+    <!-- Chat Section -->
+    <div class="charts__chat">
+      <div class="charts__chat-header">
+        <h3 class="charts__chat-title">💬 Chat Assistant</h3>
+      </div>
+
+      <div class="charts__chat-body">
+        <div class="charts__chat-messages">
+          <div *ngFor="let msg of messages" class="message message--{{msg.sender}}">
+            <div class="message__content">
+              {{ msg.text }}
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="messages.length === 0" class="message message--empty">
+            <div class="message__content">
+              👋 Hello! Write a message to create a chart
+            </div>
+          </div>
+        </div>
+
+        <div class="charts__chat-input">
+          <awesome-chat (messageSent)="handleUserMessage($event)" [loading]="loading">
+          </awesome-chat>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="charts__chart">
+      <div class="charts__chart-header">
+        <h3 class="charts__chart-title">📊 Chart Visualization</h3>
+      </div>
+
+      <div class="charts__chart-body">
+        <div class="charts__chart-container">
+          <!-- Chart Container -->
+          <div #chartContainer class="charts__chart-canvas"></div>
+
+          <!-- Loading State -->
+          <div *ngIf="loading" class="charts__loading">
+            <div class="charts__loading-spinner"></div>
+            <div class="charts__loading-text">⏳ Generating chart...</div>
+          </div>
+
+          <!-- Error State -->
+          <div *ngIf="error" class="charts__error">
+            <div class="charts__error-icon">❌</div>
+            <div class="charts__error-text">Error occurred</div>
+            <div class="charts__error-subtext">{{ error }}</div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!chartOptions && !loading && !error" class="charts__chart-placeholder">
+            <div class="charts__chart-placeholder-icon">📈</div>
+            <div class="charts__chart-placeholder-text">No chart available</div>
+            <div class="charts__chart-placeholder-subtext">Write a message to create a new chart</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

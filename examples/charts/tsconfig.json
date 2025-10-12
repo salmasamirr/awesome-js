@@ -4,7 +4,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
-      "@awesome/charts": [
+      "@awesome/awesome-chart": [
         "../../dist/charts"
       ]
     },
@@ -33,10 +33,10 @@
   "files": [],
   "references": [
     {
-      "path": "../../packages/charts/tsconfig.lib.json"
+      "path": "../../packages/awesome-chart/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/charts/tsconfig.spec.json"
+      "path": "../../packages/awesome-chart/tsconfig.spec.json"
     },
     {
       "path": "./tsconfig.app.json"

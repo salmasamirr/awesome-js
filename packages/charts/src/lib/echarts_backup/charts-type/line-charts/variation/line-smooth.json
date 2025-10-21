@@ -1,0 +1,13 @@
+{
+  "title": "Smooth Line Schema",
+  "allOf": [{ "$ref": "../type-base/schema.json" }],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "smooth": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

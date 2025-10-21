@@ -1,0 +1,13 @@
+{
+  "title": "Step Line Schema",
+  "allOf": [{ "$ref": "../type-base/schema.json" }],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "step": { "type": "string", "enum": ["start", "middle", "end"] }
+        }
+      }
+    }
+  }
+}

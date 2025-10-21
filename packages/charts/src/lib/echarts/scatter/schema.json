@@ -1,0 +1,78 @@
+{
+  "title": "Scatter Chart Base Schema",
+  "allOf": [
+    {
+      "$ref": "../base/base.json"
+
+    }
+  ],
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "scatter"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": [
+                "array",
+                "number",
+                "object"
+              ]
+            }
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "symbolSize": {
+            "type": [
+              "number",
+              "string"
+            ]
+          },
+          "emphasis": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      }
+    }
+  },
+  "example": {
+    "title": {
+      "text": "Basic Scatter Example"
+    },
+    "xAxis": {},
+    "yAxis": {},
+    "series": [
+      {
+        "type": "scatter",
+        "data": [
+          [
+            10,
+            8
+          ],
+          [
+            20,
+            15
+          ],
+          [
+            30,
+            22
+          ],
+          [
+            40,
+            35
+          ]
+        ]
+      }
+    ]
+  }
+}

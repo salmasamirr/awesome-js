@@ -1,0 +1,11 @@
+{
+  "variation": "sankey-node-alignments",
+  "extra": {
+    "series": [
+      {
+        "orient": "horizontal",
+        "nodeWidth": 20
+      }
+    ]
+  }
+}

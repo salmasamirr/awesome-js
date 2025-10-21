@@ -1,0 +1,8 @@
+{
+  "title": { "text": "Area Line" },
+  "xAxis": { "type": "category", "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] },
+  "yAxis": { "type": "value" },
+  "series": [
+    { "type": "line", "areaStyle": {}, "data": [140, 232, 101, 264, 90, 340, 250] }
+  ]
+}

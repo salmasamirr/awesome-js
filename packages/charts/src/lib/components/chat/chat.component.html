@@ -1,0 +1,20 @@
+<div class="chat">
+  <div class="chat__input-container">
+    <input [(ngModel)]="message" placeholder="Write your message..." class="chat__input" (keydown.enter)="send()"
+      [disabled]="loading" />
+    <select [(ngModel)]="selectedChartType" class="chat__select chat__select--chart" [disabled]="loading" (change)="onChartTypeChange()">
+      <option *ngFor="let type of chartTypes" [value]="type.value">
+        {{ type.label }}
+      </option>
+    </select>
+    <select [(ngModel)]="selectedVariation" class="chat__select chat__select--variation" [disabled]="loading">
+      <option *ngFor="let variation of getCurrentVariations()" [value]="variation.value">
+        {{ variation.label }}
+      </option>
+    </select>
+    <button (click)="send()" class="chat__button" [disabled]="loading || !message.trim()"
+      [class.chat__button--loading]="loading">
+      {{ loading ? 'Sending...' : 'Send' }}
+    </button>
+  </div>
+</div>

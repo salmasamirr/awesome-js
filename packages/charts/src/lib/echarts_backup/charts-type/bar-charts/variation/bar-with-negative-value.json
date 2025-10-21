@@ -1,0 +1,4 @@
+{
+  "title": "Bar Chart with Negative Values",
+  "allOf": [{ "$ref": "../type-base/schema.json" }]
+}

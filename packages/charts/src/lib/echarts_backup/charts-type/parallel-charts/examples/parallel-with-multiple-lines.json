@@ -1,0 +1,21 @@
+{
+    "type": "parallel",
+    "title": { "text": "Parallel with Multiple Lines" },
+    "parallelAxis": [
+      { "dim": 0, "name": "Price" },
+      { "dim": 1, "name": "Mileage" },
+      { "dim": 2, "name": "Weight" }
+    ],
+    "series": [
+      {
+        "name": "Car A",
+        "type": "parallel",
+        "data": [[12000, 15, 1200], [14000, 12, 1100]]
+      },
+      {
+        "name": "Car B",
+        "type": "parallel",
+        "data": [[18000, 10, 1400], [16000, 13, 1300]]
+      }
+    ]
+}

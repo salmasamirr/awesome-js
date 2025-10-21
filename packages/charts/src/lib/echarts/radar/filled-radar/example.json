@@ -1,0 +1,10 @@
+{
+  "variation": "filled-radar",
+  "extra": {
+    "series": [
+      {
+        "areaStyle": {}
+      }
+    ]
+  }
+}

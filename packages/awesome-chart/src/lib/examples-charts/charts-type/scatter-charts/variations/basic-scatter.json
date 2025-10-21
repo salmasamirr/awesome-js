@@ -1,4 +1,0 @@
-{
-  "title": "Basic Scatter",
-  "allOf": [{ "$ref": "../../../types/scatter.json" }]
-}

@@ -1,0 +1,19 @@
+{
+  "title": "Doughnut Pie Chart",
+  "allOf": [
+    {
+      "$ref": "../../base/base.json"
+    }
+  ],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "radius": {
+            "type": "array"
+          }
+        }
+      }
+    }
+  }
+}

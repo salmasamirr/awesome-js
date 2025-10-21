@@ -1,0 +1,21 @@
+.inner-theme {
+  --bg-page: #F4F5F7;
+  --bg-card: #FFFFFF;
+  --border-subtle: #EBECF0;
+  --text-primary: #172B4D;
+  --text-secondary: #6B778C;
+  --primary: #0052CC;
+  --primary-hover: #003D99;
+  --success: #36B37E;
+  --error: #FF5630;
+  --spacing: 16px;
+  --gap: 24px;
+  --radius: 8px;
+  --font-sans: 'Inter', sans-serif;
+  --h1-size: 32px;
+  --h2-size: 24px;
+  --h3-size: 20px;
+  --body-size: 16px;
+  --small-size: 14px;
+}
+

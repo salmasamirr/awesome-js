@@ -1,0 +1,8 @@
+{
+  "title": "Nested Pie Chart",
+  "allOf": [
+    {
+      "$ref": "../../base/base.json"
+    }
+  ]
+}

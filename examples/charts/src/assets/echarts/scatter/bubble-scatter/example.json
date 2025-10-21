@@ -1,0 +1,23 @@
+{
+  "title": "Bubble Scatter Chart Schema",
+  "allOf": [
+    {
+      "$ref": "../../base/base.json"
+    }
+  ],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "symbolSize": {
+            "type": [
+              "number",
+              "string",
+              "function"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

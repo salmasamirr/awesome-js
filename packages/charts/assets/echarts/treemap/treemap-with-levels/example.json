@@ -1,0 +1,30 @@
+{
+  "title": { "text": "Treemap with Levels" },
+  "series": [
+    {
+      "type": "treemap",
+      "data": [
+        {
+          "name": "A",
+          "value": 10,
+          "children": [
+            { "name": "A1", "value": 4 },
+            { "name": "A2", "value": 6 }
+          ]
+        },
+        {
+          "name": "B", 
+          "value": 20,
+          "children": [
+            { "name": "B1", "value": 8 },
+            { "name": "B2", "value": 12 }
+          ]
+        }
+      ],
+      "levels": [
+        { "itemStyle": { "borderWidth": 2 } },
+        { "itemStyle": { "gapWidth": 2 } }
+      ]
+    }
+  ]
+}

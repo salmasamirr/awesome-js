@@ -1,0 +1,10 @@
+{
+  "title": "Step Area Chart",
+  "series": [
+    {
+      "type": "line",
+      "step": "middle",
+      "areaStyle": {}
+    }
+  ]
+}

@@ -1,4 +1,0 @@
-{
-  "title": "Basic Pie Chart",
-  "allOf": [{ "$ref": "../../../types/pie/schema.json" }]
-}

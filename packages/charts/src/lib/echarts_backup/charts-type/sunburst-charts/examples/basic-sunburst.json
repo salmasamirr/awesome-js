@@ -1,0 +1,10 @@
+{
+    "series": [{
+      "type": "sunburst",
+      "data": [
+        { "name": "A", "value": 10, "children": [{ "name": "A1", "value": 4 }] },
+        { "name": "B", "value": 20 }
+      ],
+      "radius": [0, "90%"]
+    }]
+}

@@ -1,0 +1,18 @@
+{
+    "type": "heatmap",
+    "title": { "text": "Geo Heatmap" },
+    "geo": { "map": "world", "roam": true },
+    "visualMap": { "min": 0, "max": 100, "left": "right", "top": "bottom" },
+    "series": [
+      {
+        "type": "heatmap",
+        "coordinateSystem": "geo",
+        "data": [
+          [116.46, 39.92, 80],
+          [121.48, 31.22, 60],
+          [114.05, 22.54, 40]
+        ]
+      }
+    ]
+  
+}

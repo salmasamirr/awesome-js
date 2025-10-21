@@ -1,0 +1,13 @@
+{
+  "title": "Stacked Line Schema",
+  "allOf": [{ "$ref": "../type-base/schema.json" }],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "stack": { "type": "string" }
+        }
+      }
+    }
+  }
+}

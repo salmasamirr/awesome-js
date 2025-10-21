@@ -1,0 +1,6 @@
+{
+  "variation": "calendar_heatmap",
+  "extra": {
+    "calendar": { "range": "2025", "cellSize": [20, 20] }
+  }
+}

@@ -1,0 +1,50 @@
+<div class="charts inner-theme">
+
+  <!-- Floating Chat Toggle Button -->
+  <button class="charts__floating-toggle" (click)="toggleChat()" [class.charts__floating-toggle--active]="showChat">
+    <span class="charts__floating-icon">{{ showChat ? '✕' : '💬' }}</span>
+  </button>
+
+  <div class="charts__main">
+
+    <!-- Chat Section -->
+    <div class="charts__chat" [class.charts__chat--hidden]="!showChat">
+      <div class="charts__chat-body">
+        <div class="charts__chat-messages">
+          <div *ngFor="let msg of messages" class="message message--{{msg.sender}}">
+            <div class="message__content">
+              {{ msg.text }}
+            </div>
+          </div>
+        </div>
+
+        <div class="charts__chat-input">
+          <awesome-chat (messageSent)="handleUserMessage($event)" [loading]="loading">
+          </awesome-chat>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="charts__chart">
+      <div class="charts__chart-body">
+        <div class="charts__chart-container">
+          <!-- Chart Container -->
+          <div #chartContainer class="charts__chart-canvas"></div>
+
+          <!-- Error State -->
+          <div *ngIf="error" class="charts__error">
+            <div class="charts__error-icon">❌</div>
+            <div class="charts__error-subtext">{{ error }}</div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!chartOptions && !loading && !error" class="charts__chart-placeholder">
+            <div class="charts__chart-placeholder-icon">📈</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

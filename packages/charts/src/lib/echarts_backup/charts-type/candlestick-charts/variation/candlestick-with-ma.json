@@ -1,8 +1,0 @@
-{
-  "title": "Candlestick with MA",
-  "series": [
-    { "type": "candlestick" },
-    { "type": "line", "name": "MA5" },
-    { "type": "line", "name": "MA10" }
-  ]
-}

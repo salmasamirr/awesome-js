@@ -12,74 +12,71 @@ export class SchemaManagerService {
     const schemas: any[] = [];
 
     try {
-      // Load base schema
-      const base = await this.safeLoadJson(`${this.basePath}/base/base.json`);
+      // Load base schema first
+      const basePath = `${this.basePath}/base/base.json`;
+      const base = await this.safeLoadJson(basePath);
       if (Object.keys(base).length > 0) {
         schemas.push(base);
       }
 
       // Load chart type schema
-      const typeSchema = await this.safeLoadJson(`${this.basePath}/${chartType}/schema.json`);
+      const typePath = `${this.basePath}/${chartType}/schema.json`;
+      const typeSchema = await this.safeLoadJson(typePath);
       if (Object.keys(typeSchema).length > 0) {
         schemas.push(typeSchema);
       }
 
-      // Load variation schema if provided
+      // If variation is selected, load variation schema
       if (variation) {
-        const variationSchema = await this.safeLoadJson(`${this.basePath}/${chartType}/${variation}/schema.json`);
-        if (Object.keys(variationSchema).length > 0) {
-          schemas.push(variationSchema);
+        const variationPath = `${this.basePath}/${chartType}/${variation}/example.json`;
+        const variationExample = await this.safeLoadJson(variationPath);
+        if (Object.keys(variationExample).length > 0) {
+          schemas.push(variationExample);
         }
       }
 
-      return this.concatSchemas(schemas);
+      const result = this.concatSchemas(schemas);
+      return result;
     } catch (error) {
-      console.error('Error loading combined schema:', error);
       return {};
     }
   }
 
   async loadExample(chartType: string, variation?: string): Promise<any> {
-    // Always try to load the base example for the chart type
-    const typeExample = await this.safeLoadJson(`${this.basePath}/${chartType}/example.json`);
+    try {
+      // Load chart type example first
+      const typeExamplePath = `${this.basePath}/${chartType}/example.json`;
+      const typeExample = await this.safeLoadJson(typeExamplePath);
 
-    // If a variation is provided, load it and deep-merge so that
-    // the variation overrides the base example where needed
-    if (variation) {
-      const variationExample = await this.safeLoadJson(`${this.basePath}/${chartType}/${variation}/example.json`);
+      // If variation is selected, load variation example and merge
+      if (variation) {
+        const variationExamplePath = `${this.basePath}/${chartType}/${variation}/example.json`;
+        const variationExample = await this.safeLoadJson(variationExamplePath);
 
-      // If both are non-empty objects, merge; otherwise return the non-empty one
-      if (Object.keys(typeExample).length > 0 && Object.keys(variationExample).length > 0) {
-        const merged = { ...typeExample };
-        this.deepMerge(merged, variationExample);
-        return merged;
+        if (Object.keys(typeExample).length > 0 && Object.keys(variationExample).length > 0) {
+          const merged = { ...typeExample };
+          this.deepMerge(merged, variationExample);
+          return merged;
+        }
+
+        return Object.keys(variationExample).length > 0 ? variationExample : typeExample;
       }
 
-      return Object.keys(variationExample).length > 0 ? variationExample : typeExample;
-    }
-
-    return typeExample;
-  }
-
-  /**
-   * Load a JSON file and parse it
-   */
-  private async safeLoadJson(path: string): Promise<any> {
-    try {
-      console.log('Loading JSON from:', path);
-      const result = await lastValueFrom(this.http.get<any>(path));
-      console.log('Successfully loaded:', path, result);
-      return result;
-    } catch (err) {
-      console.warn(`SchemaManagerService: Failed to load ${path}, returning {}`);
+      return typeExample;
+    } catch (error) {
       return {};
     }
   }
 
-  /**
-   * Concatenate multiple schemas into one
-   * This method ensures no duplicate attributes by merging properties intelligently
-   */
+  private async safeLoadJson(path: string): Promise<any> {
+    try {
+      const result = await lastValueFrom(this.http.get<any>(path));
+      return result;
+    } catch (err) {
+      return {};
+    }
+  }
+
   private concatSchemas(schemas: any[]): any {
     if (schemas.length === 0) return {};
     if (schemas.length === 1) return schemas[0];
@@ -93,10 +90,6 @@ export class SchemaManagerService {
     return merged;
   }
 
-  /**
-   * Deep merge objects while avoiding duplicate attributes
-   * Later schemas override earlier ones for conflicting properties
-   */
   private deepMerge(target: any, source: any): void {
     for (const key in source) {
       if (source.hasOwnProperty(key)) {
@@ -106,7 +99,6 @@ export class SchemaManagerService {
           }
           this.deepMerge(target[key], source[key]);
         } else {
-          // Override with source value to avoid duplicates
           target[key] = source[key];
         }
       }
@@ -115,9 +107,9 @@ export class SchemaManagerService {
 
   getAvailableChartTypes(): string[] {
     return [
-      'area', 'bar', 'boxplot', 'candlestick', 'funnel', 
-      'gauge', 'graph', 'heatmap', 'line', 'map', 
-      'parallel', 'pie', 'radar', 'sankey', 'scatter', 
+      'area', 'bar', 'boxplot', 'candlestick', 'funnel',
+      'gauge', 'graph', 'heatmap', 'line', 'map',
+      'parallel', 'pie', 'radar', 'sankey', 'scatter',
       'sunburst', 'treemap'
     ];
   }

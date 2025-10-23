@@ -1,8 +1,0 @@
-{
-  "title": { "text": "Step Line" },
-  "xAxis": { "type": "category", "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] },
-  "yAxis": { "type": "value" },
-  "series": [
-    { "type": "line", "step": "middle", "data": [120, 132, 101, 134, 90, 230, 210] }
-  ]
-}

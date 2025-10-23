@@ -1,7 +1,0 @@
-{
-  "title": "Comparison Funnel Chart",
-  "series": [
-    { "type": "funnel", "sort": "ascending" },
-    { "type": "funnel", "sort": "descending" }
-  ]
-}

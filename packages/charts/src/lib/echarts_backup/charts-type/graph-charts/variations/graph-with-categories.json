@@ -1,8 +1,0 @@
-{
-  "variation": "graph-with-categories",
-  "extra": {
-    "series": [
-      { "categories": [{ "name": "Group A" }, { "name": "Group B" }] }
-    ]
-  }
-}

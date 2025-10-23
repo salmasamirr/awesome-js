@@ -1,10 +1,5 @@
 @import '../../../styles/theme/_tokens.css';
 
-/* =============================================================================
-   CHAT COMPONENT - Theme-ready Styles (CSS Variables)
-   ============================================================================= */
-
-/* === CHAT CONTAINER === */
 .chat {
   display: flex;
   flex-direction: column;
@@ -12,14 +7,19 @@
   width: 100%;
 }
 
-/* === INPUT CONTAINER === */
 .chat__input-container {
   display: flex;
   gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.chat__selects-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
   align-items: stretch;
   width: 100%;
-  min-width: 0;
-  flex-wrap: wrap;
 }
 
 /* === INPUT FIELD === */
@@ -90,28 +90,31 @@
 
 /* === SEND BUTTON === */
 .chat__button {
-  padding: 8px 24px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   background-color: var(--primary);
   color: #FFFFFF;
   border: 1px solid var(--primary);
   border-radius: 6px;
-  font-family: var(--font-sans);
-  font-size: var(--small-size);
-  font-weight: 500;
-  line-height: 1.25;
   cursor: pointer;
   transition: all 150ms ease-in-out;
-  white-space: nowrap;
-  user-select: none;
   flex-shrink: 0;
-  min-width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat__button-icon {
+  font-size: 16px;
 }
 
 .chat__button:hover:not(:disabled) {
   background-color: var(--primary-hover);
   border-color: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .chat__button:active {
@@ -131,7 +134,10 @@
 /* === LOADING STATE === */
 .chat__button--loading {
   position: relative;
-  color: transparent;
+}
+
+.chat__button--loading .chat__button-icon {
+  opacity: 0;
 }
 
 .chat__button--loading::after {
@@ -140,156 +146,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 1rem;
-  height: 1rem;
+  width: 16px;
+  height: 16px;
   border: 2px solid #FFFFFF;
   border-top: 2px solid transparent;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-}
-
-/* === RESPONSIVE DESIGN === */
-@media (max-width: 1200px) {
-  .chat__input-container {
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  
-  .chat__input {
-    flex: 1;
-    min-width: 200px;
-  }
-  
-  .chat__select {
-    min-width: 120px;
-    flex-shrink: 0;
-  }
-  
-  .chat__select--chart {
-    min-width: 130px;
-  }
-  
-  .chat__select--variation {
-    min-width: 100px;
-  }
-  
-  .chat__button {
-    flex-shrink: 0;
-    min-width: fit-content;
-  }
-}
-
-@media (max-width: 1024px) {
-  .chat__input-container {
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  
-  .chat__input {
-    flex: 1;
-    min-width: 150px;
-  }
-  
-  .chat__input,
-  .chat__select {
-    font-size: 13px;
-    padding: 6px 12px;
-  }
-  
-  .chat__select {
-    min-width: 110px;
-  }
-  
-  .chat__select--chart {
-    min-width: 120px;
-  }
-  
-  .chat__select--variation {
-    min-width: 90px;
-  }
-  
-  .chat__button {
-    padding: 6px 16px;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 768px) {
-  .chat__input-container {
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-    flex-wrap: nowrap;
-  }
-  
-  .chat__input {
-    width: 100%;
-    min-width: 0;
-    font-size: 14px;
-    padding: 8px 16px;
-    order: 1;
-  }
-  
-  .chat__select {
-    width: 100%;
-    min-width: 0;
-    font-size: 14px;
-    padding: 8px 16px;
-  }
-  
-  .chat__select--chart {
-    order: 2;
-  }
-  
-  .chat__select--variation {
-    order: 3;
-  }
-  
-  .chat__button {
-    width: 100%;
-    min-height: 44px;
-    font-size: 14px;
-    padding: 8px 16px;
-    order: 4;
-  }
-}
-
-@media (max-width: 480px) {
-  .chat__input-container {
-    gap: 6px;
-  }
-  
-  .chat__input,
-  .chat__select,
-  .chat__button {
-    font-size: 16px;
-    min-height: 44px;
-    padding: 8px 12px;
-  }
-  
-  .chat__button {
-    padding: 8px 16px;
-  }
-}
-
-/* === EXTRA SMALL SCREENS === */
-@media (max-width: 320px) {
-  .chat__input-container {
-    gap: 4px;
-  }
-  
-  .chat__input,
-  .chat__select,
-  .chat__button {
-    padding: 6px 8px;
-    font-size: 14px;
-    min-height: 40px;
-  }
-  
-  .chat__button {
-    padding: 6px 12px;
-  }
 }
 
 /* === ANIMATIONS === */

@@ -1,7 +1,0 @@
-{
-  "title": "Multiple Radar Chart",
-  "series": [
-    { "type": "radar", "areaStyle": {} },
-    { "type": "radar", "lineStyle": { "type": "dashed" } }
-  ]
-}

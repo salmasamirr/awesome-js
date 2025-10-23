@@ -2,8 +2,8 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { ChartsComponent } from './components/charts/charts.component';
 import { ChatComponent } from './components/chat/chat.component';
+import { ChartsComponent } from '../public-api';
 
 @NgModule({
   imports: [

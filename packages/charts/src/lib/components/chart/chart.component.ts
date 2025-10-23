@@ -6,11 +6,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'awesome-charts',
+  selector: 'awesome-chart',
   standalone: true,
   imports: [CommonModule, FormsModule, ChatComponent],
-  templateUrl: './charts.component.html',
-  styleUrls: ['./charts.component.css']
+  templateUrl: './chart.component.html',
+  styleUrls: ['./chart.component.css']
 })
 export class ChartsComponent implements AfterViewInit {
   @Input() options: any;
@@ -20,10 +20,8 @@ export class ChartsComponent implements AfterViewInit {
   loading = false;
   error = '';
   messages: { sender: 'user' | 'ai'; text: string }[] = [];
-
   chartOptions: any;
-  activeRange: 'week' | 'month' | 'year' = 'month';
-  
+  showChat = true;
 
   constructor(private llm: LLMService) {}
 
@@ -35,11 +33,8 @@ export class ChartsComponent implements AfterViewInit {
     }
   }
 
-  setActiveRange(range: 'week' | 'month' | 'year') {
-    this.activeRange = range;
-    if (this.chartOptions) {
-      this.chartInstance.setOption(this.chartOptions);
-    }
+  toggleChat() {
+    this.showChat = !this.showChat;
   }
 
   private ensurePrimaryColor(options: any) {
@@ -65,18 +60,15 @@ export class ChartsComponent implements AfterViewInit {
 
     this.llm.generateChartOptions(request.message, request.chartType, request.variation).subscribe({
       next: (options) => {
-        // Chart options generated successfully
         this.chartOptions = this.ensurePrimaryColor(options);
         this.chartInstance.setOption(this.chartOptions);
         this.messages.push({ sender: 'ai', text: 'Chart generated successfully 🎨' });
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error generating chart:', err);
         this.messages.push({ sender: 'ai', text: 'Error occurred while generating chart 😢' });
         this.loading = false;
       }
     });
   }
-
 }

@@ -1,9 +1,19 @@
 {
-  "title": { "text": "Stacked Bar Chart" },
-  "xAxis": { "data": ["Mon", "Tue", "Wed", "Thu", "Fri"] },
-  "yAxis": {},
-  "series": [
-    { "type": "bar", "data": [120, 200, 150, 80, 70], "stack": "total" },
-    { "type": "bar", "data": [60, 100, 75, 40, 35], "stack": "total" }
-  ]
+  "title": "Stacked Bar Chart",
+  "allOf": [
+    {
+      "$ref": "../../base/base.json"
+    }
+  ],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "stack": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }

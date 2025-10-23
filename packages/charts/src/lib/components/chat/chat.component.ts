@@ -12,7 +12,7 @@ export interface ChartRequest {
   selector: 'awesome-chat',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './chat.component.html',
+  templateUrl:'./chat.component.html',
   styleUrls: ['./chat.component.css']
 })
 export class ChatComponent {
@@ -23,115 +23,115 @@ export class ChatComponent {
   selectedVariation = '';
 
   chartTypes = [
-    { value: 'bar', label: 'Bar Chart' },
-    { value: 'line', label: 'Line Chart' },
-    { value: 'pie', label: 'Pie Chart' },
-    { value: 'scatter', label: 'Scatter Chart' },
-    { value: 'radar', label: 'Radar Chart' },
-    { value: 'gauge', label: 'Gauge Chart'},
-    { value: 'area', label: 'Area Chart' },
-    { value: 'treemap', label: 'Treemap Chart' },
-    { value: 'sunburst', label: 'Sunburst Chart' },
-    { value: 'sankey', label: 'Sankey Chart' },
-    { value: 'heatmap', label: 'Heatmap Chart' },
-    { value: 'funnel', label: 'Funnel Chart' },
-    { value: 'candlestick', label: 'Candlestick Chart' },
-    { value: 'boxplot', label: 'Boxplot Chart' },
-    { value: 'graph', label: 'Graph Chart' },
-    { value: 'map', label: 'Map Chart' },
-    { value: 'parallel', label: 'Parallel Chart' }
+    { value: 'bar', label: 'Bar Chart', folder: 'bar' },
+    { value: 'line', label: 'Line Chart', folder: 'line' },
+    { value: 'pie', label: 'Pie Chart', folder: 'pie' },
+    { value: 'scatter', label: 'Scatter Chart', folder: 'scatter' },
+    { value: 'radar', label: 'Radar Chart', folder: 'radar' },
+    { value: 'gauge', label: 'Gauge Chart', folder: 'gauge' },
+    { value: 'area', label: 'Area Chart', folder: 'area' },
+    { value: 'treemap', label: 'Treemap Chart', folder: 'treemap' },
+    { value: 'sunburst', label: 'Sunburst Chart', folder: 'sunburst' },
+    { value: 'sankey', label: 'Sankey Chart', folder: 'sankey' },
+    { value: 'heatmap', label: 'Heatmap Chart', folder: 'heatmap' },
+    { value: 'funnel', label: 'Funnel Chart', folder: 'funnel' },
+    { value: 'candlestick', label: 'Candlestick Chart', folder: 'candlestick' },
+    { value: 'boxplot', label: 'Boxplot Chart', folder: 'boxplot' },
+    { value: 'graph', label: 'Graph Chart', folder: 'graph' },
+    { value: 'map', label: 'Map Chart', folder: 'map' },
+    { value: 'parallel', label: 'Parallel Chart', folder: 'parallel' }
   ];
 
-  variations: { [key: string]: { value: string; label: string }[] } = {
+  variations: { [key: string]: { value: string; label: string; folder: string }[] } = {
     'bar': [
-      { value: '', label: 'Basic' },
-      { value: 'horizontal', label: 'Horizontal' },
-      { value: 'stacked', label: 'Stacked' },
-      { value: 'negative', label: 'Negative' },
-      { value: 'racing', label: 'Racing' },
-      { value: 'waterfall', label: 'Waterfall' }
+      { value: '', label: 'Basic', folder: 'bar' },
+      { value: 'horizontal', label: 'Horizontal', folder: 'bar/horizontal' },
+      { value: 'stacked', label: 'Stacked', folder: 'bar/stacked' },
+      { value: 'negative', label: 'Negative', folder: 'bar/negative' },
+      { value: 'racing', label: 'Racing', folder: 'bar/racing' },
+      { value: 'waterfall', label: 'Waterfall', folder: 'bar/waterfall' }
     ],
     'line': [
-      { value: '', label: 'Basic' },
-      { value: 'line-smooth', label: 'Smooth' },
-      { value: 'line-area', label: 'Area' },
-      { value: 'line-stacked', label: 'Stacked' },
-      { value: 'line-step', label: 'Step' }
+      { value: '', label: 'Basic', folder: 'line' },
+      { value: 'line-smooth', label: 'Smooth', folder: 'line/line-smooth' },
+      { value: 'line-area', label: 'Area', folder: 'line/line-area' },
+      { value: 'line-stacked', label: 'Stacked', folder: 'line/line-stacked' },
+      { value: 'line-step', label: 'Step', folder: 'line/line-step' }
     ],
     'pie': [
-      { value: '', label: 'Basic' },
-      { value: 'doughnut(Ring)-pie', label: 'Doughnut' },
-      { value: 'rose-pie', label: 'Rose' },
-      { value: 'nested-pie', label: 'Nested' }
+      { value: '', label: 'Basic', folder: 'pie' },
+      { value: 'doughnut(Ring)-pie', label: 'Doughnut', folder: 'pie/doughnut(Ring)-pie' },
+      { value: 'rose-pie', label: 'Rose', folder: 'pie/rose-pie' },
+      { value: 'nested-pie', label: 'Nested', folder: 'pie/nested-pie' }
     ],
     'scatter': [
-      { value: '', label: 'Basic' },
-      { value: 'bubble-scatter', label: 'Bubble' },
-      { value: 'effect-scatter', label: 'Effect' },
-      { value: 'large-scatter', label: 'Large' }
+      { value: '', label: 'Basic', folder: 'scatter' },
+      { value: 'bubble-scatter', label: 'Bubble', folder: 'scatter/bubble-scatter' },
+      { value: 'effect-scatter', label: 'Effect', folder: 'scatter/effect-scatter' },
+      { value: 'large-scatter', label: 'Large', folder: 'scatter/large-scatter' }
     ],
     'radar': [
-      { value: '', label: 'Basic' },
-      { value: 'filled-radar', label: 'Filled' },
-      { value: 'multiple-radar', label: 'Multiple' }
+      { value: '', label: 'Basic', folder: 'radar' },
+      { value: 'filled-radar', label: 'Filled', folder: 'radar/filled-radar' },
+      { value: 'multiple-radar', label: 'Multiple', folder: 'radar/multiple-radar' }
     ],
     'gauge': [
-      { value: '', label: 'Basic' },
-      { value: 'dashboard', label: 'Dashboard' },
-      { value: 'multi', label: 'Multi' }
+      { value: '', label: 'Basic', folder: 'gauge' },
+      { value: 'dashboard', label: 'Dashboard', folder: 'gauge/dashboard' },
+      { value: 'multi', label: 'Multi', folder: 'gauge/multi' }
     ],
     'area': [
-      { value: '', label: 'Basic' },
-      { value: 'smooth', label: 'Smooth' },
-      { value: 'stacked', label: 'Stacked' },
-      { value: 'step', label: 'Step' }
+      { value: '', label: 'Basic', folder: 'area' },
+      { value: 'smooth', label: 'Smooth', folder: 'area/smooth' },
+      { value: 'stacked', label: 'Stacked', folder: 'area/stacked' },
+      { value: 'step', label: 'Step', folder: 'area/step' }
     ],
     'treemap': [
-      { value: '', label: 'Basic' },
-      { value: 'treemap-drilldown', label: 'Drilldown' },
-      { value: 'treemap-with-levels', label: 'With Levels' }
+      { value: '', label: 'Basic', folder: 'treemap' },
+      { value: 'treemap-drilldown', label: 'Drilldown', folder: 'treemap/treemap-drilldown' },
+      { value: 'treemap-with-levels', label: 'With Levels', folder: 'treemap/treemap-with-levels' }
     ],
     'sunburst': [
-      { value: '', label: 'Basic' },
-      { value: 'sunburst-with-levels', label: 'With Levels' },
-      { value: 'sunburst-with-radius', label: 'With Radius' }
+      { value: '', label: 'Basic', folder: 'sunburst' },
+      { value: 'sunburst-with-levels', label: 'With Levels', folder: 'sunburst/sunburst-with-levels' },
+      { value: 'sunburst-with-radius', label: 'With Radius', folder: 'sunburst/sunburst-with-radius' }
     ],
     'sankey': [
-      { value: '', label: 'Basic' },
-      { value: 'sankey-node-alignments', label: 'Node Alignments' }
+      { value: '', label: 'Basic', folder: 'sankey' },
+      { value: 'sankey-node-alignments', label: 'Node Alignments', folder: 'sankey/sankey-node-alignments' }
     ],
     'heatmap': [
-      { value: '', label: 'Basic' },
-      { value: 'calendar-heatmap', label: 'Calendar' },
-      { value: 'geo-heatmap', label: 'Geo' }
+      { value: '', label: 'Basic', folder: 'heatmap' },
+      { value: 'calendar-heatmap', label: 'Calendar', folder: 'heatmap/calendar-heatmap' },
+      { value: 'geo-heatmap', label: 'Geo', folder: 'heatmap/geo-heatmap' }
     ],
     'funnel': [
-      { value: '', label: 'Basic' },
-      { value: 'comparison', label: 'Comparison' },
-      { value: 'sorted', label: 'Sorted' }
+      { value: '', label: 'Basic', folder: 'funnel' },
+      { value: 'comparison', label: 'Comparison', folder: 'funnel/comparison' },
+      { value: 'sorted', label: 'Sorted', folder: 'funnel/sorted' }
     ],
     'candlestick': [
-      { value: '', label: 'Basic' },
-      { value: 'candlestick-with-ma', label: 'With MA' },
-      { value: 'candlestick-with-volume', label: 'With Volume' }
+      { value: '', label: 'Basic', folder: 'candlestick' },
+      { value: 'candlestick-with-ma', label: 'With MA', folder: 'candlestick/candlestick-with-ma' },
+      { value: 'candlestick-with-volume', label: 'With Volume', folder: 'candlestick/candlestick-with-volume' }
     ],
     'boxplot': [
-      { value: '', label: 'Basic' },
-      { value: 'multiple', label: 'Multiple' }
+      { value: '', label: 'Basic', folder: 'boxplot' },
+      { value: 'multiple', label: 'Multiple', folder: 'boxplot/multiple' }
     ],
     'graph': [
-      { value: '', label: 'Basic' },
-      { value: 'circular-graph', label: 'Circular' },
-      { value: 'force-graph', label: 'Force' },
-      { value: 'graph-with-categories', label: 'With Categories' }
+      { value: '', label: 'Basic', folder: 'graph' },
+      { value: 'circular-graph', label: 'Circular', folder: 'graph/circular-graph' },
+      { value: 'force-graph', label: 'Force', folder: 'graph/force-graph' },
+      { value: 'graph-with-categories', label: 'With Categories', folder: 'graph/graph-with-categories' }
     ],
     'map': [
-      { value: '', label: 'Basic' },
-      { value: 'china-map', label: 'China Map' }
+      { value: '', label: 'Basic', folder: 'map' },
+      { value: 'china-map', label: 'China Map', folder: 'map/china-map' }
     ],
     'parallel': [
-      { value: '', label: 'Basic' },
-      { value: 'parallel-with-multiple-lines', label: 'Multiple Lines' }
+      { value: '', label: 'Basic', folder: 'parallel' },
+      { value: 'parallel-with-multiple-lines', label: 'Multiple Lines', folder: 'parallel/parallel-with-multiple-lines' }
     ]
   };
 

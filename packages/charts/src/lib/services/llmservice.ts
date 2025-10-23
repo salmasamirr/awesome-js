@@ -8,23 +8,29 @@ import { SchemaManagerService } from './schema-manager.service';
 export class LLMService {
   private readonly apiUrl = 'http://localhost:8000/chat-raw';
   private messageHistory: string[] = [];
+  private isDebug(): boolean {
+    try {
+      return typeof window !== 'undefined' && (window as any).__AWESOME_CHARTS_DEBUG === true;
+    } catch {
+      return false;
+    }
+  }
 
-  constructor(private http: HttpClient, private schemaManager: SchemaManagerService) {}
+  constructor(private http: HttpClient, private schemaManager: SchemaManagerService) { }
 
   generateChartOptions(query: string, chartType: string = 'bar', variation?: string): Observable<any> {
     return new Observable(observer => {
-      // Load schema and example asynchronously
       Promise.all([
         this.schemaManager.loadCombinedSchema(chartType, variation),
         this.schemaManager.loadExample(chartType, variation)
       ]).then(([schema, example]) => {
         const prompt = this.generatePrompt(query, chartType, variation, schema, example);
-        
+
         this.messageHistory.push(`User: ${query}`);
 
         const body = {
           message: prompt,
-          session_id: `chart-session-${Date.now()}` // Add timestamp to make each request unique
+          session_id: `chart-session-${Date.now()}`
         };
 
         const headers = new HttpHeaders({
@@ -32,18 +38,16 @@ export class LLMService {
           'Accept': 'application/json'
         });
 
-        console.log('Sending request to LLM:', body);
         this.http.post<any>(this.apiUrl, body, { headers }).pipe(
           map((response) => {
-            console.log('LLM Response:', response);
             const raw = response?.response || response;
-            
+
             if (!raw) {
               throw new Error('Empty response from backend');
             }
 
             let parsed;
-            
+
             if (typeof raw === 'object' && raw !== null) {
               parsed = raw;
             } else if (typeof raw === 'string') {
@@ -58,7 +62,6 @@ export class LLMService {
               throw new Error('Unexpected response format');
             }
 
-            // Ensure chart type
             if (parsed.series && Array.isArray(parsed.series)) {
               parsed.series.forEach((series: any) => {
                 if (!series.type) {
@@ -71,7 +74,6 @@ export class LLMService {
             return parsed;
           }),
           catchError((err) => {
-            console.error('Chart generation error:', err);
             return throwError(() => err);
           })
         ).subscribe({
@@ -80,7 +82,6 @@ export class LLMService {
           complete: () => observer.complete()
         });
       }).catch(error => {
-        console.error('Error loading schema/example:', error);
         observer.error(error);
       });
     });
@@ -88,23 +89,19 @@ export class LLMService {
 
   private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any): string {
     let prompt = `You are an ECharts expert. Create a unique "${chartType}" chart based on the user's request: "${query}"\n\n`;
-    
-    // Add message history context
+
     if (this.messageHistory.length > 0) {
       prompt += `Previous conversation:\n${this.messageHistory.join('\n')}\n\n`;
     }
 
-    // Add schema information if available
     if (schema && Object.keys(schema).length > 0) {
       prompt += `Required schema structure (MUST follow this format):\n${JSON.stringify(schema, null, 2)}\n\n`;
     }
 
-    // Add example if available
     if (example && Object.keys(example).length > 0) {
       prompt += `Reference example (use as inspiration but create different data):\n${JSON.stringify(example, null, 2)}\n\n`;
     }
 
-    // Add specific instructions based on chart type
     const chartInstructions: { [key: string]: string } = {
       bar: "Create a bar chart with different categories and values. Use meaningful category names and realistic data.",
       line: "Create a line chart showing trends over time. Use time-based categories and realistic trend data.",
@@ -141,5 +138,4 @@ export class LLMService {
 
     return prompt;
   }
-
 }

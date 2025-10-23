@@ -1,8 +1,0 @@
-{
-    "title": { "text": "Basic Bar Example" },
-    "xAxis": { "data": ["Mon", "Tue", "Wed", "Thu", "Fri"] },
-    "yAxis": {},
-    "series": [
-      { "type": "bar", "data": [120, 200, 150, 80, 70] }
-    ]
-}

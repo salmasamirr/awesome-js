@@ -1,9 +1,0 @@
-{
-    "type": "heatmap",
-    "xAxis": { "type": "category", "data": ["Mon", "Tue", "Wed", "Thu", "Fri"] },
-    "yAxis": { "type": "category", "data": ["Morning", "Afternoon", "Evening"] },
-    "visualMap": { "min": 0, "max": 10, "calculable": true },
-    "series": [
-      { "type": "heatmap", "data": [[0,0,5],[1,0,1],[2,0,0]] }
-    ]
-}

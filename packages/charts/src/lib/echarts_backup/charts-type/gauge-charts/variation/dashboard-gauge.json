@@ -1,8 +1,0 @@
-{
-  "variation": "dashboard-gauge",
-  "extra": {
-    "series": [
-      { "type": "gauge", "startAngle": 210, "endAngle": -30 }
-    ]
-  }
-}

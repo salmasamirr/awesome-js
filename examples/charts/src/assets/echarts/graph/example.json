@@ -1,20 +1,26 @@
 {
-  "title": { "text": "Basic Graph" },
+  "title": {
+    "text": "Basic Graph"
+  },
   "series": [
     {
       "type": "graph",
       "layout": "none",
       "data": [
         { "name": "Node1", "x": 100, "y": 100 },
-        { "name": "Node2", "x": 200, "y": 100 },
-        { "name": "Node3", "x": 150, "y": 200 }
+        { "name": "Node2", "x": 200, "y": 200 },
+        { "name": "Node3", "x": 300, "y": 100 }
       ],
       "links": [
         { "source": "Node1", "target": "Node2" },
-        { "source": "Node2", "target": "Node3" },
-        { "source": "Node1", "target": "Node3" }
-      ]
+        { "source": "Node2", "target": "Node3" }
+      ],
+      "itemStyle": {
+        "color": "#0052CC"
+      },
+      "lineStyle": {
+        "color": "#0052CC"
+      }
     }
   ]
 }
-

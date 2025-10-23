@@ -1,6 +1,10 @@
 {
-  "title": "Bar Chart Schema",
-  "type": "object",
+  "title": "Bar Chart Base Schema",
+  "allOf": [
+    {
+      "$ref": "../base/base.json"
+    }
+  ],
   "properties": {
     "series": {
       "type": "array",

@@ -1,8 +1,0 @@
-{
-  "variation": "circular-graph",
-  "extra": {
-    "series": [
-      { "layout": "circular" }
-    ]
-  }
-}

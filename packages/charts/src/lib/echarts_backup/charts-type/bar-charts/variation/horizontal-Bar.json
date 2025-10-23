@@ -1,5 +1,0 @@
-{
-  "title": "Horizontal Bar Chart",
-  "allOf": [{ "$ref": "../type-base/schema.json" }]
-
-}

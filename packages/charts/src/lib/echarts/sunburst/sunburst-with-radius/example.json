@@ -1,8 +1,0 @@
-{
-  "variation": "sunburst-with-radius",
-  "extra": {
-    "series": [
-      { "radius": [0, "90%"] }
-    ]
-  }
-}

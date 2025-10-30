@@ -12,26 +12,23 @@ export class SchemaManagerService {
     const schemas: any[] = [];
 
     try {
-      // Load base schema first
       const basePath = `${this.basePath}/base/base.json`;
       const base = await this.safeLoadJson(basePath);
       if (Object.keys(base).length > 0) {
         schemas.push(base);
       }
 
-      // Load chart type schema
       const typePath = `${this.basePath}/${chartType}/schema.json`;
       const typeSchema = await this.safeLoadJson(typePath);
       if (Object.keys(typeSchema).length > 0) {
         schemas.push(typeSchema);
       }
 
-      // If variation is selected, load variation schema
       if (variation) {
         const variationPath = `${this.basePath}/${chartType}/${variation}/example.json`;
-        const variationExample = await this.safeLoadJson(variationPath);
-        if (Object.keys(variationExample).length > 0) {
-          schemas.push(variationExample);
+        const variationSchema = await this.safeLoadJson(variationPath);
+        if (Object.keys(variationSchema).length > 0) {
+          schemas.push(variationSchema);
         }
       }
 
@@ -44,11 +41,9 @@ export class SchemaManagerService {
 
   async loadExample(chartType: string, variation?: string): Promise<any> {
     try {
-      // Load chart type example first
       const typeExamplePath = `${this.basePath}/${chartType}/example.json`;
       const typeExample = await this.safeLoadJson(typeExamplePath);
 
-      // If variation is selected, load variation example and merge
       if (variation) {
         const variationExamplePath = `${this.basePath}/${chartType}/${variation}/example.json`;
         const variationExample = await this.safeLoadJson(variationExamplePath);
@@ -59,7 +54,8 @@ export class SchemaManagerService {
           return merged;
         }
 
-        return Object.keys(variationExample).length > 0 ? variationExample : typeExample;
+        const result = Object.keys(variationExample).length > 0 ? variationExample : typeExample;
+        return result;
       }
 
       return typeExample;
@@ -108,7 +104,7 @@ export class SchemaManagerService {
   getAvailableChartTypes(): string[] {
     return [
       'area', 'bar', 'boxplot', 'candlestick', 'funnel',
-      'gauge', 'graph', 'heatmap', 'line', 'map',
+      'gauge', 'graph', 'heatmap', 'line',
       'parallel', 'pie', 'radar', 'sankey', 'scatter',
       'sunburst', 'treemap'
     ];

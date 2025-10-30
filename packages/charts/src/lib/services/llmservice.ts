@@ -1,35 +1,34 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, from, throwError } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';
 import { SchemaManagerService } from './schema-manager.service';
+import { ValidationService } from './validation.service';
 
 @Injectable({ providedIn: 'root' })
 export class LLMService {
-  private readonly apiUrl = 'http://localhost:8000/chat-raw';
+  private readonly apiUrl = 'http://localhost:5000/chat';
   private messageHistory: string[] = [];
-  private isDebug(): boolean {
-    try {
-      return typeof window !== 'undefined' && (window as any).__AWESOME_CHARTS_DEBUG === true;
-    } catch {
-      return false;
-    }
-  }
 
-  constructor(private http: HttpClient, private schemaManager: SchemaManagerService) { }
+  constructor(
+    private http: HttpClient,
+    private schemaManager: SchemaManagerService,
+    private validationService: ValidationService
+  ) { }
 
   generateChartOptions(query: string, chartType: string = 'bar', variation?: string): Observable<any> {
-    return new Observable(observer => {
-      Promise.all([
-        this.schemaManager.loadCombinedSchema(chartType, variation),
-        this.schemaManager.loadExample(chartType, variation)
-      ]).then(([schema, example]) => {
-        const prompt = this.generatePrompt(query, chartType, variation, schema, example);
+    const schemaPromise = Promise.all([
+      this.schemaManager.loadCombinedSchema(chartType, variation),
+      this.schemaManager.loadExample(chartType, variation)
+    ]);
 
-        this.messageHistory.push(`User: ${query}`);
-
+    return from(schemaPromise).pipe(
+      switchMap(([schema, example]) => {
+        const messages = this.generatePrompt(query, chartType, variation, schema, example);
         const body = {
-          message: prompt,
+          message: this.formatMessageForBackend(messages),
+          chartType: chartType,
+          variation: variation || '',
           session_id: `chart-session-${Date.now()}`
         };
 
@@ -38,104 +37,192 @@ export class LLMService {
           'Accept': 'application/json'
         });
 
-        this.http.post<any>(this.apiUrl, body, { headers }).pipe(
-          map((response) => {
-            const raw = response?.response || response;
+        return this.http.post<any>(this.apiUrl, body, { headers });
+      }),
+      map((response) => {
+        // Use validation service to extract and validate response
+        const validation = this.validationService.validateResponse(response);
+        if (!validation.valid) {
+          throw new Error(`Validation failed: ${validation.error}`);
+        }
 
-            if (!raw) {
-              throw new Error('Empty response from backend');
-            }
+        let parsed = validation.data;
 
-            let parsed;
-
-            if (typeof raw === 'object' && raw !== null) {
-              parsed = raw;
-            } else if (typeof raw === 'string') {
-              try {
-                const jsonMatch = raw.match(/\{[\s\S]*\}/);
-                const jsonString = jsonMatch ? jsonMatch[0] : raw;
-                parsed = JSON.parse(jsonString);
-              } catch (err) {
-                throw new Error('Invalid JSON returned from server');
+        // Ensure series type is set correctly and fix data structure
+        if (parsed.series && Array.isArray(parsed.series)) {
+          parsed.series.forEach((series: any) => {
+            // Handle area charts specially - they use "line" type with areaStyle
+            if (chartType === 'area') {
+              if (!series.type || series.type !== 'line') {
+                ;
+                series.type = 'line';
               }
-            } else {
-              throw new Error('Unexpected response format');
+              // Ensure areaStyle is present for area charts
+              if (!series.areaStyle) {
+                series.areaStyle = {};
+              }
+            } else if (!series.type || series.type !== chartType) {
+              series.type = chartType;
             }
 
-            if (parsed.series && Array.isArray(parsed.series)) {
-              parsed.series.forEach((series: any) => {
-                if (!series.type) {
-                  series.type = chartType;
+            // Fix data structure for specific chart types
+            if (chartType === 'treemap' && series.data && Array.isArray(series.data)) {
+              // Convert simple numbers to treemap data structure
+              series.data = series.data.map((value: any, index: number) => {
+                if (typeof value === 'number') {
+                  return {
+                    name: `Item ${index + 1}`,
+                    value: value
+                  };
                 }
+                return value;
               });
             }
 
-            this.messageHistory.push(`Assistant: Generated ${chartType} chart`);
-            return parsed;
-          }),
-          catchError((err) => {
-            return throwError(() => err);
-          })
-        ).subscribe({
-          next: res => observer.next(res),
-          error: err => observer.error(err),
-          complete: () => observer.complete()
-        });
-      }).catch(error => {
-        observer.error(error);
-      });
-    });
+            // Ensure visualMap is present for heatmap charts
+            if (chartType === 'heatmap' && !parsed.visualMap) {
+              let min = 0;
+              let max = 10;
+              if (series.data && Array.isArray(series.data) && series.data.length > 0) {
+                const values = series.data.map((item: any) => Array.isArray(item) ? item[2] : item.value).filter((v: any) => typeof v === 'number');
+                if (values.length > 0) {
+                  min = Math.min(...values);
+                  max = Math.max(...values);
+                }
+              }
+              parsed.visualMap = {
+                min: min,
+                max: max,
+                calculable: true,
+                orient: 'horizontal',
+                left: 'center'
+              };
+            }
+          });
+        }
+
+        // Validate that the chart type matches
+        if (parsed.series && Array.isArray(parsed.series)) {
+          let hasCorrectType = false;
+
+          if (chartType === 'area') {
+            // For area charts, check for "line" type with areaStyle
+            hasCorrectType = parsed.series.some((series: any) =>
+              series.type === 'line' && series.areaStyle
+            );
+          } else {
+            hasCorrectType = parsed.series.some((series: any) => series.type === chartType);
+          }
+
+          if (!hasCorrectType) {
+            parsed.series.forEach((series: any) => {
+              if (chartType === 'area') {
+                series.type = 'line';
+                if (!series.areaStyle) {
+                  series.areaStyle = {};
+                }
+              } else {
+                series.type = chartType;
+              }
+            });
+          }
+        }
+
+        const finalChartType = parsed.series?.[0]?.type || 'unknown';
+
+        // Check if the LLM returned the wrong chart type
+        if (chartType !== 'area' && finalChartType !== chartType) {
+          // For non-area charts, we should have the correct type
+          if (parsed.series && Array.isArray(parsed.series)) {
+            parsed.series.forEach((series: any) => {
+              if (series.type !== chartType) {
+                series.type = chartType;
+              }
+            });
+          }
+        }
+        this.messageHistory.push(`Assistant: Generated ${chartType} chart`);
+        return parsed;
+      }),
+      catchError((err) => {
+        return throwError(() => err);
+      })
+    );
   }
 
-  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any): string {
-    let prompt = `You are an ECharts expert. Create a unique "${chartType}" chart based on the user's request: "${query}"\n\n`;
+  private formatMessageForBackend(messages: any[]): string {
+    // Send all messages to maintain context
+    const allMessages = [
+      ...this.messageHistory,
+      ...messages.map(msg => `${msg.role}: ${msg.content}`)
+    ];
 
-    if (this.messageHistory.length > 0) {
-      prompt += `Previous conversation:\n${this.messageHistory.join('\n')}\n\n`;
-    }
+    return allMessages.join('\n\n');
+  }
+
+  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any): any[] {
+    const messages: any[] = [];
+
+    // Handle area charts specially in the prompt
+    const actualSeriesType = chartType === 'area' ? 'line' : chartType;
+    const areaChartNote = chartType === 'area' ? '\nIMPORTANT: For area charts, use series type "line" with areaStyle property.' : '';
+
+    messages.push({
+      role: "system",
+      content: `You are an ECharts expert. Generate a complete ECharts configuration in JSON format for a "${chartType}" chart.
+
+🚨 CRITICAL REQUIREMENTS - READ CAREFULLY:
+1. You MUST return ONLY valid JSON, no other text or explanations
+2. The chart type MUST be exactly "${chartType}" - NOT bar, NOT line, but "${chartType}"
+3. The series type MUST be "${actualSeriesType}"${areaChartNote}
+4. Follow the provided schema structure exactly
+5. Use the provided example as a reference but create different data
+6. The JSON must be a complete ECharts option object that can be used directly with echarts.setOption()
+
+⚠️ WARNING: If you return a bar chart when asked for a ${chartType} chart, your response will be rejected!`
+    });
 
     if (schema && Object.keys(schema).length > 0) {
-      prompt += `Required schema structure (MUST follow this format):\n${JSON.stringify(schema, null, 2)}\n\n`;
+      const schemaContent = `Follow this ECharts schema structure:
+${JSON.stringify(schema, null, 2)}`;
+
+      messages.push({
+        role: "system",
+        content: schemaContent
+      });
     }
 
     if (example && Object.keys(example).length > 0) {
-      prompt += `Reference example (use as inspiration but create different data):\n${JSON.stringify(example, null, 2)}\n\n`;
+      const exampleContent = `Here is an example chart configuration for reference (create different data):
+${JSON.stringify(example, null, 2)}`;
+
+      messages.push({
+        role: "system",
+        content: exampleContent
+      });
     }
 
-    const chartInstructions: { [key: string]: string } = {
-      bar: "Create a bar chart with different categories and values. Use meaningful category names and realistic data.",
-      line: "Create a line chart showing trends over time. Use time-based categories and realistic trend data.",
-      pie: "Create a pie chart with different segments. Use meaningful labels and varied percentages.",
-      scatter: "Create a scatter plot with x,y coordinates. Use realistic coordinate data.",
-      radar: "Create a radar chart with multiple indicators. Use meaningful indicator names and values.",
-      gauge: "Create a gauge chart showing a single metric. Use realistic gauge values.",
-      area: "Create an area chart with filled areas. Use time-based data with realistic values.",
-      treemap: "Create a treemap with hierarchical data. Use meaningful node names and values.",
-      sunburst: "Create a sunburst chart with nested data. Use hierarchical structure with meaningful names.",
-      sankey: "Create a sankey diagram showing flow between nodes. Use meaningful source and target names.",
-      heatmap: "Create a heatmap with matrix data. Use meaningful row and column labels.",
-      funnel: "Create a funnel chart showing conversion stages. Use meaningful stage names and decreasing values.",
-      candlestick: "Create a candlestick chart with OHLC data. Use realistic financial data.",
-      boxplot: "Create a boxplot showing statistical distributions. Use meaningful category names.",
-      graph: "Create a network graph with nodes and links. Use meaningful node names and connections.",
-      map: "Create a map chart with geographic data. Use realistic geographic locations.",
-      parallel: "Create a parallel coordinates chart. Use multiple dimensions with realistic data."
-    };
+    messages.push({
+      role: "user",
+      content: `Create a ${chartType} chart for: "${query}"
 
-    const instruction = chartInstructions[chartType] || "Create a meaningful chart with realistic data.";
-    prompt += `Instructions: ${instruction}\n\n`;
+🚨 MANDATORY REQUIREMENTS - FOLLOW EXACTLY:
+- Return ONLY valid JSON, no other text or explanations
+- Chart type MUST be exactly: ${chartType} (NOT bar, NOT line)
+- Series type MUST be exactly: ${actualSeriesType}${areaChartNote}
+- Title should reflect the ${chartType} chart type
+- Include realistic data for: ${query}
+- Must have: title, xAxis, yAxis, series with data
+- Generate meaningful categories and values
+- Make it visually appealing
+- Follow the provided schema structure exactly
+- Use the provided example as reference but create different data
 
-    prompt += `IMPORTANT: 
-- Generate UNIQUE data based on the user's request: "${query}"
-- Use DIFFERENT values, categories, and labels each time
-- Make the chart relevant to the user's specific request
-- Ensure all data is realistic and meaningful
-- Respond ONLY with valid JSON
-- Use type: "${chartType}" in series
-- Include proper title, axes, and series configuration
-- Current timestamp: ${new Date().toISOString()}
-- Request ID: ${Math.random().toString(36).substr(2, 9)}`;
+⚠️ CRITICAL: The series.type field MUST be "${actualSeriesType}", not "bar" or "line" or any other type!${chartType === 'area' ? ' For area charts, also include areaStyle: {} in the series.' : ''}
 
-    return prompt;
+🔥 REMEMBER: You are creating a ${chartType} chart, NOT a bar chart!`
+    });
+
+    return messages;
   }
 }

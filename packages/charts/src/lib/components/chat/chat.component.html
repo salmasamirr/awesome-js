@@ -1,22 +1,44 @@
 <div class="chat">
-  <div class="chat__input-container">
-    <input [(ngModel)]="message" class="chat__input" (keydown.enter)="send()" [disabled]="loading" />
-    <button (click)="send()" class="chat__button" [disabled]="loading || !message.trim()"
-      [class.chat__button--loading]="loading">
-      <span class="chat__button-icon">📤</span>
-    </button>
+  <button class="chat__toggle-btn" (click)="toggleChat()" [class.chat__toggle-btn--closed]="isChatClosed">
+    <span class="chat__toggle-icon">
+      <img *ngIf="isChatClosed; else closeIcon" src="assets/icons/menu-bar.png" alt="Menu Icon" />
+      <ng-template #closeIcon>
+        <img src="assets/icons/menu-bar.png" alt="Close Icon" />
+      </ng-template>
+    </span>
+  </button>
+
+  <div class="chat__messages" *ngIf="!isChatClosed">
+    <div *ngFor="let msg of messages" class="message message--{{msg.sender}}">
+      <div class="message__content">
+        {{ msg.text }}
+      </div>
+    </div>
   </div>
-  <div class="chat__selects-container">
-    <select [(ngModel)]="selectedChartType" class="chat__select chat__select--chart" [disabled]="loading"
-      (change)="onChartTypeChange()">
-      <option *ngFor="let type of chartTypes" [value]="type.value">
-        {{ type.label }}
-      </option>
-    </select>
-    <select [(ngModel)]="selectedVariation" class="chat__select chat__select--variation" [disabled]="loading">
-      <option *ngFor="let variation of getCurrentVariations()" [value]="variation.value">
-        {{ variation.label }}
-      </option>
-    </select>
+
+  <div class="chat__input-area" *ngIf="!isChatClosed">
+    <div class="chat__input-container">
+      <input [(ngModel)]="message" class="chat__input" (keydown.enter)="send()" [disabled]="loading"
+        placeholder="Describe the chart you want..." />
+      <button (click)="send()" class="chat__button" [disabled]="loading || !message.trim()"
+        [class.chat__button--loading]="loading">
+        <span class="chat__button-icon"> <img src="assets/icons/send-message.png" alt="Send Icon">
+        </span>
+      </button>
+    </div>
+    <div class="chat__selects-container">
+      <select [(ngModel)]="selectedChartType" class="chat__select chat__select--chart" [disabled]="loading"
+        (change)="onChartTypeChange()">
+        <option *ngFor="let type of chartTypes" [value]="type.value">
+          {{ type.label }}
+        </option>
+      </select>
+      <select [(ngModel)]="selectedVariation" class="chat__select chat__select--variation" [disabled]="loading">
+        <option value="">Default</option>
+        <option *ngFor="let variation of variations" [value]="variation.value">
+          {{ variation.label }}
+        </option>
+      </select>
+    </div>
   </div>
 </div>

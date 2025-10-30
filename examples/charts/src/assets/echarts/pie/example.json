@@ -2,7 +2,7 @@
     "title": { "text": "Basic Pie Example" },
     "series": [
       {
-
+        "type": "pie",
         "data": [
           { "value": 1048, "name": "Search Engine" },
           { "value": 735, "name": "Direct" },

@@ -1,8 +1,0 @@
-{
-  "variation": "parallel-with-multiple-lines",
-  "extra": {
-    "series": [
-      { "type": "parallel" }
-    ]
-  }
-}

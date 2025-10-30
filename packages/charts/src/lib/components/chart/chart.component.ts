@@ -1,9 +1,7 @@
-import { Component, ElementRef, ViewChild, Input, AfterViewInit } from '@angular/core';
-import * as echarts from 'echarts';
-import { LLMService } from '../../services/llmservice';
-import { ChatComponent, ChartRequest } from '../chat/chat.component';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ChatComponent } from '../chat/chat.component';
 
 @Component({
   selector: 'awesome-chart',
@@ -12,63 +10,112 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './chart.component.html',
   styleUrls: ['./chart.component.css']
 })
-export class ChartsComponent implements AfterViewInit {
-  @Input() options: any;
+export class ChartComponent implements AfterViewInit, OnDestroy {
   @ViewChild('chartContainer', { static: true }) chartContainer!: ElementRef;
 
   chartInstance: any;
-  loading = false;
-  error = '';
-  messages: { sender: 'user' | 'ai'; text: string }[] = [];
-  chartOptions: any;
-  showChat = true;
+  echarts: any = null;
+  isLoading = false;
+  isChatClosed = false;
 
-  constructor(private llm: LLMService) {}
+  constructor() { }
 
   ngAfterViewInit() {
-    this.chartInstance = echarts.init(this.chartContainer.nativeElement);
-    if (this.options) {
-      this.chartOptions = this.ensurePrimaryColor(this.options);
-      this.chartInstance.setOption(this.chartOptions);
-    }
+    setTimeout(() => {
+      this.initializeChart();
+    }, 0);
   }
 
-  toggleChat() {
-    this.showChat = !this.showChat;
-  }
+  async initializeChart() {
+    if (this.chartContainer?.nativeElement && !this.chartInstance) {
+      try {
+        await this.loadECharts();
+        if (this.echarts) {
+          await this.waitForDOMReady();
+          this.chartInstance = this.echarts.init(this.chartContainer.nativeElement);
+          const defaultOptions = {
+            backgroundColor: 'transparent',
+            animation: true
+          };
 
-  private ensurePrimaryColor(options: any) {
-    if (!options) return options;
-    const primary = '#0052CC';
-    if (!options.color || (Array.isArray(options.color) && options.color.length === 0)) {
-      options.color = [primary];
-    }
-    if (Array.isArray(options.series)) {
-      options.series = options.series.map((s: any) => {
-        if (s && !s.color) {
-          return { ...s, color: primary };
+          this.chartInstance.setOption(defaultOptions, true);
         }
-        return s;
-      });
+      } catch (error) {
+        console.error('Error initializing chart:', error);
+      }
     }
-    return options;
   }
 
-  handleUserMessage(request: ChartRequest) {
-    this.messages.push({ sender: 'user', text: request.message });
-    this.loading = true;
-
-    this.llm.generateChartOptions(request.message, request.chartType, request.variation).subscribe({
-      next: (options) => {
-        this.chartOptions = this.ensurePrimaryColor(options);
-        this.chartInstance.setOption(this.chartOptions);
-        this.messages.push({ sender: 'ai', text: 'Chart generated successfully 🎨' });
-        this.loading = false;
-      },
-      error: (err) => {
-        this.messages.push({ sender: 'ai', text: 'Error occurred while generating chart 😢' });
-        this.loading = false;
-      }
+  private async waitForDOMReady(): Promise<void> {
+    return new Promise((resolve) => {
+      const checkDimensions = () => {
+        const element = this.chartContainer?.nativeElement;
+        if (element && element.clientWidth > 0 && element.clientHeight > 0) {
+          resolve();
+        } else {
+          setTimeout(checkDimensions, 50);
+        }
+      };
+      checkDimensions();
     });
+  }
+
+  private async loadECharts(): Promise<void> {
+    if (this.echarts) return;
+
+    this.isLoading = true;
+    try {
+      const echartsModule = await import('echarts');
+      this.echarts = echartsModule;
+    } catch (error) {
+      console.error('Error loading ECharts:', error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  updateChart(options: any) {
+    if (!this.chartInstance || !options) return;
+
+    try {
+      setTimeout(() => {
+        this.chartInstance.setOption(options, true, true);
+
+        setTimeout(() => {
+          if (this.chartInstance) {
+            this.chartInstance.resize();
+          }
+        }, 50);
+      }, 0);
+    } catch (error) {
+      console.error('Error updating chart:', error);
+      this.showSimpleError();
+    }
+  }
+
+  async onChartGenerated(options: any) {
+    if (!this.chartInstance) {
+      await this.initializeChart();
+    }
+    this.updateChart(options);
+  }
+
+  private showSimpleError() {
+    console.warn('Chart failed - ensure LLM sends valid ECharts options');
+  }
+
+  ngOnDestroy() {
+    if (this.chartInstance) {
+      this.chartInstance.dispose();
+    }
+  }
+
+  onChatToggled(isClosed: boolean) {
+    this.isChatClosed = isClosed;
+    setTimeout(() => {
+      if (this.chartInstance) {
+        this.chartInstance.resize();
+      }
+    }, 300);
   }
 }

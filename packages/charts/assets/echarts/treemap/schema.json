@@ -1,5 +1,6 @@
 {
-  "type": "treemap",
+  "title": "Treemap Chart Base Schema",
+  "type": "object",
   "properties": {
     "series": {
       "type": "array",

@@ -1,5 +1,5 @@
 {
-  "type": "graph",
+  "object": "graph",
   "properties": {
     "series": {
       "type": "array",

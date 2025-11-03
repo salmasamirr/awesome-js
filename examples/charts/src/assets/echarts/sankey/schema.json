@@ -1,5 +1,5 @@
 {
-  "type": "sankey",
+  "object": "sankey",
   "properties": {
     "series": {
       "type": "array",

@@ -1,5 +1,5 @@
 {
-  "type": "boxplot",
+  "object": "boxplot",
   "properties": {
     "series": {
       "type": "array",

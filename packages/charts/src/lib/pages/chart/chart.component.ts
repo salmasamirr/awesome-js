@@ -1,7 +1,7 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChatComponent } from '../chat/chat.component';
+import { ChatComponent } from '../../components/chat/chat.component';
 
 @Component({
   selector: 'awesome-chart',
@@ -119,3 +119,4 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     }, 300);
   }
 }
+

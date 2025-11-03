@@ -1,5 +1,5 @@
 {
-  "type": "map",
+  "object": "map",
   "properties": {
     "series": {
       "type": "array",

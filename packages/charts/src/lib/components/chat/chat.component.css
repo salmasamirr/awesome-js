@@ -250,11 +250,59 @@
 }
 
 @keyframes spin {
+
   0% {
+
     transform: translate(-50%, -50%) rotate(0deg);
+
   }
 
+
+
   100% {
+
     transform: translate(-50%, -50%) rotate(360deg);
+
   }
+
+}
+
+
+
+@media (max-width: 768px) {
+
+  .chat {
+
+    min-height: 0;
+
+  }
+
+
+
+  .chat__toggle-btn:not(.chat__toggle-btn--closed) {
+
+    top: 16px;
+
+    left: 16px;
+
+  }
+
+
+
+  .chat__selects-container {
+
+    flex-direction: column;
+
+    gap: 8px;
+
+  }
+
+
+
+  .chat__select {
+
+    width: 100%;
+
+  }
+
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class SchemaManagerService {
@@ -25,8 +26,8 @@ export class SchemaManagerService {
       }
 
       if (variation) {
-        const variationPath = `${this.basePath}/${chartType}/${variation}/example.json`;
-        const variationSchema = await this.safeLoadJson(variationPath);
+        const variationSchemaPath = `${this.basePath}/${chartType}/${variation}/example.json`;
+        const variationSchema = await this.safeLoadJson(variationSchemaPath);
         if (Object.keys(variationSchema).length > 0) {
           schemas.push(variationSchema);
         }
@@ -49,8 +50,7 @@ export class SchemaManagerService {
         const variationExample = await this.safeLoadJson(variationExamplePath);
 
         if (Object.keys(typeExample).length > 0 && Object.keys(variationExample).length > 0) {
-          const merged = { ...typeExample };
-          this.deepMerge(merged, variationExample);
+          const merged = { ...typeExample, ...variationExample };
           return merged;
         }
 
@@ -66,8 +66,21 @@ export class SchemaManagerService {
 
   private async safeLoadJson(path: string): Promise<any> {
     try {
-      const result = await lastValueFrom(this.http.get<any>(path));
-      return result;
+      const result = await lastValueFrom(
+        this.http.get<any>(path, { 
+          observe: 'response',
+          reportProgress: false 
+        }).pipe(
+          map(response => response.body),
+          catchError((error) => {
+            if (error.status === 404 || error.status === 0) {
+              return of({});
+            }
+            return of({});
+          })
+        )
+      );
+      return result || {};
     } catch (err) {
       return {};
     }
@@ -80,38 +93,78 @@ export class SchemaManagerService {
     const merged = { ...schemas[0] };
 
     for (let i = 1; i < schemas.length; i++) {
-      this.deepMerge(merged, schemas[i]);
+      Object.assign(merged, schemas[i]);
     }
 
     return merged;
   }
 
-  private deepMerge(target: any, source: any): void {
-    for (const key in source) {
-      if (source.hasOwnProperty(key)) {
-        if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
-          if (!target[key] || typeof target[key] !== 'object' || Array.isArray(target[key])) {
-            target[key] = {};
-          }
-          this.deepMerge(target[key], source[key]);
-        } else {
-          target[key] = source[key];
-        }
-      }
-    }
-  }
+  private chartTypesCache: string[] | null = null;
+  private variationsCache: { [key: string]: string[] } = {};
+  private manifestCache: any = null;
 
-  getAvailableChartTypes(): string[] {
-    return [
+  async getAvailableChartTypes(): Promise<string[]> {
+    if (this.chartTypesCache) {
+      return this.chartTypesCache;
+    }
+
+    try {
+      const manifest = await this.loadManifest();
+      if (manifest && manifest.chartTypes && Array.isArray(manifest.chartTypes) && manifest.chartTypes.length > 0) {
+        const chartTypes = manifest.chartTypes as string[];
+        this.chartTypesCache = chartTypes;
+        return chartTypes;
+      }
+    } catch (error) {
+    }
+
+    const commonChartTypes = [
       'area', 'bar', 'boxplot', 'candlestick', 'funnel',
-      'gauge', 'graph', 'heatmap', 'line',
+      'gauge', 'graph', 'heatmap', 'line', 'map',
       'parallel', 'pie', 'radar', 'sankey', 'scatter',
       'sunburst', 'treemap'
     ];
+
+    const availableTypes: string[] = [];
+
+    const discoveryPromises = commonChartTypes.map(async (type) => {
+      try {
+        const schemaPath = `${this.basePath}/${type}/schema.json`;
+        const schema = await this.safeLoadJson(schemaPath);
+        if (schema && Object.keys(schema).length > 0) {
+          return type;
+        }
+      } catch (error) {
+      }
+      return null;
+    });
+
+    const results = await Promise.all(discoveryPromises);
+    this.chartTypesCache = results.filter((type): type is string => type !== null);
+    
+    return this.chartTypesCache;
   }
 
-  getAvailableVariations(chartType: string): string[] {
-    const variations: { [key: string]: string[] } = {
+  async getAvailableVariations(chartType: string): Promise<string[]> {
+    if (this.variationsCache[chartType]) {
+      return this.variationsCache[chartType];
+    }
+
+    try {
+      const manifest = await this.loadManifest();
+      if (manifest && manifest.variations && manifest.variations[chartType]) {
+        const variations = manifest.variations[chartType];
+        if (Array.isArray(variations) && variations.length > 0) {
+          this.variationsCache[chartType] = variations;
+          return variations;
+        }
+      }
+    } catch (error) {
+    }
+
+    const variations: string[] = [];
+
+    const chartTypeVariations: { [key: string]: string[] } = {
       'area': ['smooth', 'stacked', 'step'],
       'bar': ['horizontal', 'stacked', 'negative', 'racing', 'waterfall'],
       'boxplot': ['multiple'],
@@ -131,6 +184,40 @@ export class SchemaManagerService {
       'treemap': ['treemap-drilldown', 'treemap-with-levels']
     };
 
-    return variations[chartType] || [];
+    const potentialVariations = chartTypeVariations[chartType] || [];
+
+    const discoveryPromises = potentialVariations.map(async (variationName) => {
+      try {
+        const variationPath = `${this.basePath}/${chartType}/${variationName}/example.json`;
+        const schema = await this.safeLoadJson(variationPath);
+        if (schema && Object.keys(schema).length > 0) {
+          return variationName;
+        }
+      } catch (error) {
+      }
+      return null;
+    });
+
+    const results = await Promise.all(discoveryPromises);
+    const discoveredVariations = results.filter((variation): variation is string => variation !== null);
+
+    this.variationsCache[chartType] = discoveredVariations;
+    return discoveredVariations;
+  }
+
+  private async loadManifest(): Promise<any> {
+    if (this.manifestCache !== null) {
+      return this.manifestCache;
+    }
+
+    try {
+      const manifestPath = `${this.basePath}/manifest.json`;
+      const manifest = await this.safeLoadJson(manifestPath);
+      this.manifestCache = manifest && Object.keys(manifest).length > 0 ? manifest : null;
+      return this.manifestCache;
+    } catch (error) {
+      this.manifestCache = null;
+      return null;
+    }
   }
 }

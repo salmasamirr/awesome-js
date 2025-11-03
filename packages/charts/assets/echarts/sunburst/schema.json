@@ -1,5 +1,6 @@
 {
-  "type": "sunburst",
+  "title": "Sunburst Chart Base Schema",
+  "type": "object",
   "properties": {
     "series": {
       "type": "array",

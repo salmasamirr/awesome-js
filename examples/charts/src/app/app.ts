@@ -1,28 +1,14 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { echartsBaseModel, echartsDerivativeModel, LLMService } from '@awesome/charts';
+import { ChartComponent } from '@awesome/awesome-chart';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true,
+  imports: [RouterOutlet, ChartComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrls: ['./app.css']   
 })
-export class App implements OnInit {
-  protected readonly title = signal('charts_example');
-  baseModel: any;
-  derivativeModel: any;
-
-  constructor(private llm: LLMService) {}
-
-  ngOnInit(): void {
-    // ✅ test JSON exports
-    this.baseModel = echartsBaseModel;
-    this.derivativeModel = echartsDerivativeModel;
-
-    console.log('Base model:', this.baseModel);
-    console.log('Derivative model:', this.derivativeModel);
-
-    this.llm.testValidation();   // should run AJV static validation tests
-  }
+export class App  {
+  
 }

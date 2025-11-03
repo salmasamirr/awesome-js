@@ -1,0 +1,10 @@
+{
+    "series": [{
+      "type": "treemap",
+      "data": [
+        { "name": "nodeA", "value": 10 },
+        { "name": "nodeB", "value": 20 }
+      ]
+    }]
+
+}

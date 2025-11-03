@@ -1,0 +1,10 @@
+{
+  "variation": "sorted-funnel",
+  "extra": {
+    "series": [
+      {
+        "sort": "ascending"
+      }
+    ]
+  }
+}

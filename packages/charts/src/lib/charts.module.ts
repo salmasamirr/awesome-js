@@ -1,16 +1,16 @@
-// packages/charts/awesome/charts/src/lib/charts.module.ts
-
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LLMService } from './common/services/llmservice';
-
-
+import { FormsModule } from '@angular/forms';
+import { ChatComponent } from './components/chat/chat.component';
 
 @NgModule({
-providers: [LLMService],
   imports: [
-    CommonModule  
+    CommonModule,
+    FormsModule,
+    ChatComponent 
   ],
-exports: []
+  exports: [
+    ChatComponent
+  ]
 })
-export class ChartsModule {}
+export class AwesomeChartsModule {}

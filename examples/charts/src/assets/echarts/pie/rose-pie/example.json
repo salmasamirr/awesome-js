@@ -1,0 +1,22 @@
+{
+  "title": "Rose Pie Chart",
+  "allOf": [
+    {
+      "$ref": "../../base/base.json"
+    }
+  ],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "roseType": {
+            "enum": [
+              "radius",
+              "area"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

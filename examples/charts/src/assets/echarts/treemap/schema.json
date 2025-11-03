@@ -1,0 +1,17 @@
+{
+  "title": "Treemap Chart Base Schema",
+  "type": "object",
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "treemap" },
+          "data": { "type": "array" },
+          "leafDepth": { "type": "number" }
+        }
+      }
+    }
+  }
+}

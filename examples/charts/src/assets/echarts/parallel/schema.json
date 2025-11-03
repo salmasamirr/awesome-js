@@ -1,0 +1,23 @@
+{
+  "title": "ECharts Super Base Schema",
+  "type": "object",  
+  "properties": {
+    "parallelAxis": {
+      "type": "array"
+    },
+    "series": {
+      "type": "array", 
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "parallel"  
+          },
+          "data": {
+            "type": "array"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "title": "Bar Chart Schema",
+  "type": "object",
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "bar"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "object"
+              ]
+            }
+          },
+          "barWidth": {
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "barGap": {
+            "type": "string"
+          },
+          "barCategoryGap": {
+            "type": "string"
+          },
+          "label": {
+            "type": "object"
+          },
+          "emphasis": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      }
+    }
+  }
+}

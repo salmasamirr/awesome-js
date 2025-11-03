@@ -1,0 +1,21 @@
+{
+  "title": "Base Line Schema",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string" },
+    "xAxis": { "type": "object" },
+    "yAxis": { "type": "object" },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "line" },
+          "data": { "type": "array", "items": { "type": "number" } }
+        },
+        "required": ["type", "data"]
+      }
+    }
+  },
+  "required": ["series"]
+}

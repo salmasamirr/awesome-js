@@ -1,14 +1,5 @@
-/*
- * Public API Surface of charts
- */
-
-
-
-// Services
-export * from './lib/charts.module'
-export * from './lib/common/services/llmservice'
-// Schemas
-export * from './lib/schemas/echarts-options.schema';
-
-export * from './lib/schemas/echarts_base_model';
-export * from './lib/schemas/echarts_derivative_model';
+export * from './lib/services/llmservice'
+export * from './lib/services/schema-manager.service'
+export * from './lib/services/validation.service'
+export * from './lib/pages/chart/chart.component';
+export * from './lib/components/chat/chat.component';

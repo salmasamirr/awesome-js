@@ -1,102 +1,144 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
-import { echartsOptionsSchema } from '../../schemas/echarts-options.schema';
+import { Observable, from, throwError } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';
+import { SchemaManagerService } from './schema-manager.service';
+import { ValidationService } from './validation.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class LLMService {
-  private ajv;
-  private validate;
+  private readonly apiUrl = 'http://localhost:5000/chat';
+  private messageHistory: string[] = [];
 
-  // Configure API base URL and model here
-  private readonly apiUrl = 'http://localhost:8000/v1/chat/completions';
-  private readonly model = 'gpt4all'; // adjust if needed
+  constructor(
+    private http: HttpClient,
+    private schemaManager: SchemaManagerService,
+    private validationService: ValidationService
+  ) { }
 
-  constructor(private http: HttpClient) {
-    this.ajv = new Ajv({ allErrors: true });
-    addFormats(this.ajv);
-    this.validate = this.ajv.compile(echartsOptionsSchema);
-  }
+  generateChartOptions(query: string, chartType: string = 'bar', variation?: string): Observable<any> {
+    const schemaPromise = Promise.all([
+      this.schemaManager.loadCombinedSchema(chartType, variation),
+      this.schemaManager.loadExample(chartType, variation)
+    ]);
 
-  /**
-   * Generate chart options from user query
-   */
-  generateChartOptions(query: string): Observable<any> {
-    const body = {
-      model: this.model,
-      messages: [
-        { role: 'system', content: 'You are a chart generator. Return ONLY valid JSON with ECharts options.' },
-        { role: 'user', content: query }
-      ]
-    };
+    return from(schemaPromise).pipe(
+      switchMap(([schema, example]) => {
+        const messages = this.generatePrompt(query, chartType, variation, schema, example);
+        const body = {
+          message: this.formatMessageForBackend(messages),
+          chartType: chartType,
+          variation: variation || '',
+          session_id: `chart-session-${Date.now()}`
+        };
 
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+        const headers = new HttpHeaders({
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        });
 
-    return this.http.post<any>(this.apiUrl, body, { headers }).pipe(
-      map((response) => {
-        const raw = response?.choices?.[0]?.message?.content;
-        if (!raw) throw new Error('Empty response from LLM');
+        return this.http.post<any>(this.apiUrl, body, { headers }).pipe(
+          map((response) => {
+            let data = response;
+            if (typeof response === 'string') {
+              try {
+                data = JSON.parse(response);
+              } catch (e) {
+                // If parsing fails, let validation service handle it
+              }
+            }
 
-        let parsed;
-        try {
-          parsed = JSON.parse(raw);
-        } catch {
-          throw new Error('LLM did not return valid JSON.');
-        }
+            const validation = this.validationService.validateResponse(data, schema);
+            
+            if (!validation.valid) {
+              throw new Error(`LLM returned invalid chart: ${validation.error}`);
+            }
 
-        if (!this.validateOptions(parsed)) {
-          throw new Error('Response does not match ECharts schema.');
-        }
-
-        return parsed;
+            return validation.data;
+          }),
+          catchError((error) => {
+            console.error('HTTP error during chart generation:', error);
+            return throwError(() => new Error(`Failed to connect to backend: ${error.message || error}`));
+          })
+        );
       }),
       catchError((err) => {
-        console.error('LLMService error:', err);
         return throwError(() => err);
       })
     );
   }
 
-  /**
-   * Validate JSON against ECharts schema
-   */
-  validateOptions(json: any): boolean {
-    return this.validate(json) as boolean;
+  private formatMessageForBackend(messages: any[]): string {
+    const allMessages = [
+      ...this.messageHistory,
+      ...messages.map(msg => `${msg.role}: ${msg.content}`)
+    ];
+
+    return allMessages.join('\n\n');
   }
 
-  /**
-   * Static test for AJV validator (no LLM needed)
-   */
-  testValidation(): void {
-  const validExample = {
-    xAxis: { type: 'category', data: ['Mon', 'Tue', 'Wed'] },
-    yAxis: { type: 'value' },
-    series: [{ type: 'bar', data: [120, 200, 150] }]
-  };
+  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any): any[] {
+    const messages: any[] = [];
 
-  const invalidExample = {
-    invalidKey: 'oops',
-    series: 'this should be an array'
-  };
+    const actualSeriesType = chartType === 'area' ? 'line' : chartType;
+    const areaChartNote = chartType === 'area' ? '\nIMPORTANT: For area charts, use series type "line" with areaStyle property.' : '';
 
-  console.log('--- AJV Static Tests ---');
+    messages.push({
+      role: "system",
+      content: `You are an ECharts expert. Generate a complete ECharts configuration in JSON format for a "${chartType}" chart.
 
-  const validResult = this.validateOptions(validExample);
-  console.log('Valid example result:', validResult);
-  if (!validResult) {
-    console.log('Valid example errors:', this.validate.errors);
+🚨 CRITICAL REQUIREMENTS - READ CAREFULLY:
+1. You MUST return ONLY valid JSON, no other text or explanations
+2. The chart type MUST be strictly "${chartType}" - NOT any type, but this type "${chartType}"
+3. The series type MUST be "${actualSeriesType}"${areaChartNote}
+4. Follow the provided schema structure strictly
+5. Use the provided example as a reference but create different data
+6. The JSON must be a complete ECharts option object that can be used directly with echarts.setOption()
+
+⚠️ WARNING: If you return a wrong chart type, your response will be rejected!`
+    });
+
+    if (schema && Object.keys(schema).length > 0) {
+      const schemaContent = `Follow this ECharts schema structure:
+${JSON.stringify(schema, null, 2)}`;
+
+      messages.push({
+        role: "system",
+        content: schemaContent
+      });
+    }
+
+    if (example && Object.keys(example).length > 0) {
+      const exampleContent = `Here is an example chart configuration for reference (create different data):
+${JSON.stringify(example, null, 2)}`;
+
+      messages.push({
+        role: "system",
+        content: exampleContent
+      });
+    }
+
+    messages.push({
+      role: "user",
+      content: `Create a ${chartType} chart for: "${query}"
+
+🚨 MANDATORY REQUIREMENTS - FOLLOW STRICTLY:
+- Return ONLY valid JSON, no other text or explanations
+- Chart type MUST be strictly: ${chartType} - NOT any type, but this type "${chartType}"
+- Series type MUST be strictly: ${actualSeriesType}${areaChartNote}
+- Title should reflect the ${chartType} chart type
+- Include realistic data for: ${query}
+- Must have: title, xAxis, yAxis, series with data
+- Generate meaningful categories and values
+- Make it visually appealing
+- Follow the provided schema structure strictly
+- Use the provided example as reference but create different data
+
+⚠️ CRITICAL: The series.type field MUST be "${actualSeriesType}", not "bar" or "line" or any other type!${chartType === 'area' ? ' For area charts, also include areaStyle: {} in the series.' : ''}
+
+🔥 REMEMBER: You are creating a ${chartType} chart, NOT a bar chart!`
+    });
+
+    return messages;
   }
-
-  const invalidResult = this.validateOptions(invalidExample);
-  console.log('Invalid example result:', invalidResult);
-  if (!invalidResult) {
-    console.log('Invalid example errors:', this.validate.errors);
-  }
-}
-
 }

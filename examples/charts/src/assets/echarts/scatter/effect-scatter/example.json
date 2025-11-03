@@ -1,0 +1,19 @@
+{
+  "title": "Effect Scatter Chart Schema",
+  "allOf": [
+    {
+      "$ref": "../../base/base.json"
+    }
+  ],
+  "properties": {
+    "series": {
+      "items": {
+        "properties": {
+          "rippleEffect": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

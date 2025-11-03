@@ -1,0 +1,21 @@
+<div class="chart inner-theme">
+  <div class="chart__main" [class.chat-closed]="isChatClosed">
+    <div class="chart__chat">
+      <awesome-chat (chartGenerated)="onChartGenerated($event)" (chatToggled)="onChatToggled($event)"></awesome-chat>
+    </div>
+    <div class="chart__chart">
+      <div class="chart__container">
+        <div *ngIf="isLoading" class="chart__loading">
+          <div class="chart__loading-spinner"></div>
+          <p>Loading ECharts...</p>
+        </div>
+        <div #chartContainer class="chart__canvas" [style.display]="isLoading ? 'none' : 'block'">
+          <div *ngIf="!isLoading && !chartInstance" class="chart__error">
+            <p>Chart not initialized. Please try again.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

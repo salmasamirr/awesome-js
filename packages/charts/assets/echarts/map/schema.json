@@ -1,0 +1,16 @@
+{
+  "object": "map",
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "map" },
+          "map": { "type": "string" },
+          "data": { "type": "array" }
+        }
+      }
+    }
+  }
+}

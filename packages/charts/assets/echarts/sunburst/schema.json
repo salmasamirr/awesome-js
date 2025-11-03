@@ -1,0 +1,16 @@
+{
+  "title": "Sunburst Chart Base Schema",
+  "type": "object",
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "sunburst" },
+          "radius": { "type": "string" }
+        }
+      }
+    }
+  }
+}

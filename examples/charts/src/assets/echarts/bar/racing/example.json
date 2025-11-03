@@ -1,0 +1,13 @@
+  {"barRacing": {
+    "schema": {
+      "type": "barRacing",
+      "attributes": {
+        "xField": "value",
+        "yField": "category",
+        "seriesField": "year",
+        "animationDuration": 2000,
+        "maxBars": 10
+      }
+    }
+  }
+}

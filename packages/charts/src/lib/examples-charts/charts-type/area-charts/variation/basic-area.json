@@ -1,9 +1,0 @@
-{
-  "title": "Basic Area Chart",
-  "series": [
-    {
-      "type": "line",
-      "areaStyle": {}
-    }
-  ]
-}

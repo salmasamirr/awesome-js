@@ -1,0 +1,17 @@
+{
+  "object": "graph",
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "const": "graph" },
+          "layout": { "type": "string" },
+          "data": { "type": "array" },
+          "links": { "type": "array" }
+        }
+      }
+    }
+  }
+}

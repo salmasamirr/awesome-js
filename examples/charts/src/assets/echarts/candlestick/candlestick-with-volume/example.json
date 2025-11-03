@@ -1,0 +1,12 @@
+{
+  "variation": "candlestick-with-volume",
+  "extra": {
+    "yAxis": [
+      null,
+      { "name": "Volume", "position": "right" }
+    ],
+    "series": [
+      { "type": "bar", "name": "Volume", "yAxisIndex": 1 }
+    ]
+  }
+}

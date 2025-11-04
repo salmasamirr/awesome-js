@@ -1,10 +1,7 @@
 <div class="chat">
   <button class="chat__toggle-btn" (click)="toggleChat()" [class.chat__toggle-btn--closed]="isChatClosed">
     <span class="chat__toggle-icon">
-      <img *ngIf="isChatClosed; else closeIcon" src="assets/icons/menu-bar.png" alt="Menu Icon" />
-      <ng-template #closeIcon>
-        <img src="assets/icons/menu-bar.png" alt="Close Icon" />
-      </ng-template>
+      <img src="assets/icons/menu-bar.png" [alt]="isChatClosed ? 'Menu Icon' : 'Close Icon'" />
     </span>
   </button>
 

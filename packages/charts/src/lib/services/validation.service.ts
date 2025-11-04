@@ -1,39 +1,19 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import Ajv, { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
+import { lastValueFrom } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class ValidationService {
   private ajv: Ajv;
-  private baseSchema: any = {
-    type: 'object',
-    properties: {
-      title: { type: 'object' },
-      tooltip: { type: 'object' },
-      legend: { type: 'object' },
-      grid: { type: 'object' },
-      xAxis: { type: 'object' },
-      yAxis: { type: 'object' },
-      series: {
-        type: 'array',
-        items: {
-          type: 'object',
-          required: ['type', 'data'],
-          properties: {
-            type: { type: 'string' },
-            data: { 
-              type: 'array',
-              items: {}
-            }
-          }
-        }
-      }
-    },
-    required: ['series']
-  };
-  private baseValidator: ValidateFunction;
+  private baseSchema: any = null;
+  private baseValidator: ValidateFunction | null = null;
+  private readonly basePath = 'assets/echarts';
+  private initializationPromise: Promise<void> | null = null;
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.ajv = new Ajv({ 
       allErrors: true, 
       strict: false,
@@ -41,41 +21,53 @@ export class ValidationService {
       removeAdditional: false
     });
     addFormats(this.ajv);
-    this.baseValidator = this.ajv.compile(this.baseSchema);
   }
 
-  private cleanSchemaForValidation(schema: any): any {
-    if (!schema || typeof schema !== 'object') {
-      return {};
+  private async initializeBaseSchema(): Promise<void> {
+    if (this.initializationPromise) {
+      return this.initializationPromise;
     }
 
-    const cleaned: any = {};
+    this.initializationPromise = (async () => {
+      try {
+        this.baseSchema = await this.loadBaseSchema();
+        
+        if (!this.baseSchema || Object.keys(this.baseSchema).length === 0) {
+          throw new Error('Base schema is empty or not found');
+        }
+        
+        this.baseValidator = this.ajv.compile(this.baseSchema);
+        console.info('Base schema initialized successfully');
+      } catch (error) {
+        console.error('CRITICAL: Failed to load base schema', error);
+        throw new Error('Cannot initialize validation service: ' + error);
+      }
+    })();
 
-    if (schema.type) cleaned.type = schema.type;
-    if (schema.title) cleaned.title = schema.title;
+    return this.initializationPromise;
+  }
 
-    if (schema.properties) {
-      cleaned.properties = { ...schema.properties };
-    }
-
-    if (schema.allOf && Array.isArray(schema.allOf)) {
-      if (!cleaned.properties) cleaned.properties = {};
+  private async loadBaseSchema(): Promise<any> {
+    const basePath = `${this.basePath}/base/base.json`;
+    
+    try {
+      const result = await lastValueFrom(
+        this.http.get<any>(basePath).pipe(
+          catchError((error) => {
+            throw new Error(`Base schema file not found: ${basePath}`);
+          })
+        )
+      );
       
-      schema.allOf.forEach((item: any) => {
-        if (item.$ref) {
-          return;
-        }
-        if (item.properties) {
-          Object.assign(cleaned.properties, item.properties);
-        }
-      });
+      if (!result || Object.keys(result).length === 0) {
+        throw new Error('Base schema file is empty');
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Failed to load base schema:', error);
+      throw error;
     }
-
-    if (schema.required && Array.isArray(schema.required)) {
-      cleaned.required = [...schema.required];
-    }
-
-    return cleaned;
   }
 
   extractJSON(response: any): any {
@@ -85,12 +77,24 @@ export class ValidationService {
       const rawData = response.response || response;
       return typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
     } catch (error) {
-      console.warn('JSON parsing failed:', error);
+      console.error('JSON parsing failed:', error);
       return null;
     }
   }
 
-  validateResponse(response: any, schema?: any): { valid: boolean; data?: any; error?: string } {
+  async validateResponse(response: any, schema?: any): Promise<{ valid: boolean; data?: any; error?: string }> {
+    if (!this.baseSchema || !this.baseValidator) {
+      try {
+        await this.initializeBaseSchema();
+      } catch (error) {
+        return { 
+          valid: false, 
+          error: `Validation service not initialized: ${error}`,
+          data: null 
+        };
+      }
+    }
+
     const data = this.extractJSON(response);
     
     if (!data) {
@@ -109,7 +113,7 @@ export class ValidationService {
       return { valid: false, error: 'No valid series found with data', data };
     }
 
-    let validator = this.baseValidator;
+    let validator = this.baseValidator!;
     
     if (schema && Object.keys(schema).length > 0) {
       try {
@@ -152,10 +156,6 @@ export class ValidationService {
       const valid = validator(data);
       
       if (!valid) {
-        const errors = validator.errors?.map(err => 
-          `${err.instancePath || err.schemaPath} ${err.message}`
-        ).join(', ') || 'Schema validation failed';
-        
         const criticalErrors = validator.errors?.filter(err => {
           const path = err.instancePath || err.schemaPath || '';
           const message = err.message || '';
@@ -175,7 +175,7 @@ export class ValidationService {
         const criticalErrorMsg = criticalErrors.map(err => 
           `${err.instancePath || err.schemaPath} ${err.message}`
         ).join(', ');
-        return { valid: false, error: `Validation warnings: ${criticalErrorMsg}`, data };
+        return { valid: false, error: `Validation errors: ${criticalErrorMsg}`, data };
       }
       
       return { valid: true, data };
@@ -183,5 +183,39 @@ export class ValidationService {
       console.warn('Validation error:', validationError);
       return { valid: false, error: 'Validation error occurred', data };
     }
+  }
+
+  private cleanSchemaForValidation(schema: any): any {
+    if (!schema || typeof schema !== 'object') {
+      return {};
+    }
+
+    const cleaned: any = {};
+
+    if (schema.type) cleaned.type = schema.type;
+    if (schema.title) cleaned.title = schema.title;
+
+    if (schema.properties) {
+      cleaned.properties = { ...schema.properties };
+    }
+
+    if (schema.allOf && Array.isArray(schema.allOf)) {
+      if (!cleaned.properties) cleaned.properties = {};
+      
+      schema.allOf.forEach((item: any) => {
+        if (item.$ref) {
+          return;
+        }
+        if (item.properties) {
+          Object.assign(cleaned.properties, item.properties);
+        }
+      });
+    }
+
+    if (schema.required && Array.isArray(schema.required)) {
+      cleaned.required = [...schema.required];
+    }
+
+    return cleaned;
   }
 }

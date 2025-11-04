@@ -119,4 +119,3 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     }, 300);
   }
 }
-

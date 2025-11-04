@@ -6,8 +6,69 @@ import { catchError, map } from 'rxjs/operators';
 @Injectable({ providedIn: 'root' })
 export class SchemaManagerService {
   private readonly basePath = 'assets/echarts';
+  private readonly manifestPath = `${this.basePath}/manifest.json`;
+
+  private chartTypesCache: string[] | null = null;
+  private variationsCache: { [key: string]: string[] } = {};
+  private manifestCache: any = null;
 
   constructor(private http: HttpClient) { }
+
+  private async loadManifest(): Promise<any> {
+    if (this.manifestCache !== null) {
+      return this.manifestCache;
+    }
+
+    try {
+      const manifest = await this.safeLoadJson(this.manifestPath);
+      if (manifest && Object.keys(manifest).length > 0) {
+        this.manifestCache = manifest;
+        return this.manifestCache;
+      } else {
+        console.warn('Manifest file is empty');
+        this.manifestCache = {};
+        return {};
+      }
+    } catch (error) {
+      console.error('Manifest file not found or invalid:', error);
+      this.manifestCache = {};
+      return {};
+    }
+  }
+
+  async getAvailableChartTypes(): Promise<string[]> {
+    if (this.chartTypesCache) {
+      return this.chartTypesCache;
+    }
+
+    const manifest = await this.loadManifest();
+    
+    if (!manifest?.chartTypes || !Array.isArray(manifest.chartTypes)) {
+      console.warn('chartTypes not found in manifest, using empty array');
+      this.chartTypesCache = [];
+      return [];
+    }
+
+    this.chartTypesCache = manifest.chartTypes;
+    return this.chartTypesCache;
+  }
+
+  async getAvailableVariations(chartType: string): Promise<string[]> {
+    if (this.variationsCache[chartType]) {
+      return this.variationsCache[chartType];
+    }
+
+    const manifest = await this.loadManifest();
+    
+    if (!manifest?.variations || !manifest.variations[chartType]) {
+      console.warn(`No variations found for chart type: ${chartType}`);
+      this.variationsCache[chartType] = [];
+      return [];
+    }
+
+    this.variationsCache[chartType] = manifest.variations[chartType];
+    return this.variationsCache[chartType];
+  }
 
   async loadCombinedSchema(chartType: string, variation?: string): Promise<any> {
     const schemas: any[] = [];
@@ -36,6 +97,7 @@ export class SchemaManagerService {
       const result = this.concatSchemas(schemas);
       return result;
     } catch (error) {
+      console.error('Error loading combined schema:', error);
       return {};
     }
   }
@@ -60,6 +122,7 @@ export class SchemaManagerService {
 
       return typeExample;
     } catch (error) {
+      console.error('Error loading example:', error);
       return {};
     }
   }
@@ -68,12 +131,11 @@ export class SchemaManagerService {
     try {
       const result = await lastValueFrom(
         this.http.get<any>(path, { 
-          observe: 'response',
-          reportProgress: false 
+          observe: 'response'
         }).pipe(
           map(response => response.body),
           catchError((error) => {
-            if (error.status === 404 || error.status === 0) {
+            if (error.status === 404) {
               return of({});
             }
             return of({});
@@ -91,133 +153,29 @@ export class SchemaManagerService {
     if (schemas.length === 1) return schemas[0];
 
     const merged = { ...schemas[0] };
-
     for (let i = 1; i < schemas.length; i++) {
       Object.assign(merged, schemas[i]);
     }
-
     return merged;
   }
 
-  private chartTypesCache: string[] | null = null;
-  private variationsCache: { [key: string]: string[] } = {};
-  private manifestCache: any = null;
-
-  async getAvailableChartTypes(): Promise<string[]> {
-    if (this.chartTypesCache) {
-      return this.chartTypesCache;
-    }
-
-    try {
-      const manifest = await this.loadManifest();
-      if (manifest && manifest.chartTypes && Array.isArray(manifest.chartTypes) && manifest.chartTypes.length > 0) {
-        const chartTypes = manifest.chartTypes as string[];
-        this.chartTypesCache = chartTypes;
-        return chartTypes;
-      }
-    } catch (error) {
-    }
-
-    const commonChartTypes = [
-      'area', 'bar', 'boxplot', 'candlestick', 'funnel',
-      'gauge', 'graph', 'heatmap', 'line', 'map',
-      'parallel', 'pie', 'radar', 'sankey', 'scatter',
-      'sunburst', 'treemap'
-    ];
-
-    const availableTypes: string[] = [];
-
-    const discoveryPromises = commonChartTypes.map(async (type) => {
-      try {
-        const schemaPath = `${this.basePath}/${type}/schema.json`;
-        const schema = await this.safeLoadJson(schemaPath);
-        if (schema && Object.keys(schema).length > 0) {
-          return type;
-        }
-      } catch (error) {
-      }
-      return null;
-    });
-
-    const results = await Promise.all(discoveryPromises);
-    this.chartTypesCache = results.filter((type): type is string => type !== null);
-    
-    return this.chartTypesCache;
+  clearCache(): void {
+    this.chartTypesCache = null;
+    this.variationsCache = {};
+    this.manifestCache = null;
   }
 
-  async getAvailableVariations(chartType: string): Promise<string[]> {
-    if (this.variationsCache[chartType]) {
-      return this.variationsCache[chartType];
-    }
-
-    try {
-      const manifest = await this.loadManifest();
-      if (manifest && manifest.variations && manifest.variations[chartType]) {
-        const variations = manifest.variations[chartType];
-        if (Array.isArray(variations) && variations.length > 0) {
-          this.variationsCache[chartType] = variations;
-          return variations;
-        }
-      }
-    } catch (error) {
-    }
-
-    const variations: string[] = [];
-
-    const chartTypeVariations: { [key: string]: string[] } = {
-      'area': ['smooth', 'stacked', 'step'],
-      'bar': ['horizontal', 'stacked', 'negative', 'racing', 'waterfall'],
-      'boxplot': ['multiple'],
-      'candlestick': ['candlestick-with-ma', 'candlestick-with-volume'],
-      'funnel': ['comparison', 'sorted'],
-      'gauge': ['dashboard', 'multi'],
-      'graph': ['circular-graph', 'force-graph', 'graph-with-categories'],
-      'heatmap': ['calendar-heatmap', 'geo-heatmap'],
-      'line': ['line-area', 'line-smooth', 'line-stacked', 'line-step'],
-      'map': ['china-map'],
-      'parallel': ['parallel-with-multiple-lines'],
-      'pie': ['doughnut(Ring)-pie', 'rose-pie', 'nested-pie'],
-      'radar': ['filled-radar', 'multiple-radar'],
-      'sankey': ['sankey-node-alignments'],
-      'scatter': ['bubble-scatter', 'effect-scatter', 'large-scatter'],
-      'sunburst': ['sunburst-with-levels', 'sunburst-with-radius'],
-      'treemap': ['treemap-drilldown', 'treemap-with-levels']
-    };
-
-    const potentialVariations = chartTypeVariations[chartType] || [];
-
-    const discoveryPromises = potentialVariations.map(async (variationName) => {
-      try {
-        const variationPath = `${this.basePath}/${chartType}/${variationName}/example.json`;
-        const schema = await this.safeLoadJson(variationPath);
-        if (schema && Object.keys(schema).length > 0) {
-          return variationName;
-        }
-      } catch (error) {
-      }
-      return null;
-    });
-
-    const results = await Promise.all(discoveryPromises);
-    const discoveredVariations = results.filter((variation): variation is string => variation !== null);
-
-    this.variationsCache[chartType] = discoveredVariations;
-    return discoveredVariations;
+  async getManifest(): Promise<any> {
+    return await this.loadManifest();
   }
 
-  private async loadManifest(): Promise<any> {
-    if (this.manifestCache !== null) {
-      return this.manifestCache;
-    }
+  async isValidChartType(chartType: string): Promise<boolean> {
+    const availableTypes = await this.getAvailableChartTypes();
+    return availableTypes.includes(chartType);
+  }
 
-    try {
-      const manifestPath = `${this.basePath}/manifest.json`;
-      const manifest = await this.safeLoadJson(manifestPath);
-      this.manifestCache = manifest && Object.keys(manifest).length > 0 ? manifest : null;
-      return this.manifestCache;
-    } catch (error) {
-      this.manifestCache = null;
-      return null;
-    }
+  async isValidVariation(chartType: string, variation: string): Promise<boolean> {
+    const availableVariations = await this.getAvailableVariations(chartType);
+    return availableVariations.includes(variation);
   }
 }

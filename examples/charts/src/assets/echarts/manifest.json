@@ -1,1 +1,96 @@
-
+{
+  "chartTypes": [
+    "area",
+    "bar",
+    "boxplot",
+    "candlestick",
+    "funnel",
+    "gauge",
+    "graph",
+    "heatmap",
+    "line",
+    "map",
+    "parallel",
+    "pie",
+    "radar",
+    "sankey",
+    "scatter",
+    "sunburst",
+    "treemap"
+  ],
+  "variations": {
+    "area": [
+      "smooth",
+      "stacked",
+      "step"
+    ],
+    "bar": [
+      "horizontal",
+      "negative",
+      "racing",
+      "stacked",
+      "waterfall"
+    ],
+    "boxplot": [
+      "multiple"
+    ],
+    "candlestick": [
+      "candlestick-with-ma",
+      "candlestick-with-volume"
+    ],
+    "funnel": [
+      "comparison",
+      "sorted"
+    ],
+    "gauge": [
+      "dashboard",
+      "multi"
+    ],
+    "graph": [
+      "circular-graph",
+      "force-graph",
+      "graph-with-categories"
+    ],
+    "heatmap": [
+      "calendar-heatmap",
+      "geo-heatmap"
+    ],
+    "line": [
+      "line-area",
+      "line-smooth",
+      "line-stacked",
+      "line-step"
+    ],
+    "map": [
+      "china-map"
+    ],
+    "parallel": [
+      "parallel-with-multiple-lines"
+    ],
+    "pie": [
+      "doughnut(Ring)-pie",
+      "nested-pie",
+      "rose-pie"
+    ],
+    "radar": [
+      "filled-radar",
+      "multiple-radar"
+    ],
+    "sankey": [
+      "sankey-node-alignments"
+    ],
+    "scatter": [
+      "bubble-scatter",
+      "effect-scatter",
+      "large-scatter"
+    ],
+    "sunburst": [
+      "sunburst-with-levels",
+      "sunburst-with-radius"
+    ],
+    "treemap": [
+      "treemap-drilldown",
+      "treemap-with-levels"
+    ]
+  }
+}

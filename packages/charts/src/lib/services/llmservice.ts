@@ -38,24 +38,28 @@ export class LLMService {
         });
 
         return this.http.post<any>(this.apiUrl, body, { headers }).pipe(
-          map((response) => {
+          switchMap((response) => {
             let data = response;
             if (typeof response === 'string') {
               try {
                 data = JSON.parse(response);
               } catch (e) {
-                // If parsing fails, let validation service handle it
+                console.error('Failed to parse JSON response:', e);
+                console.error('Raw response:', response);
+                const errorMessage = e instanceof Error ? e.message : 'Unknown parsing error';
+                throw new Error(`Invalid JSON response from LLM service: ${errorMessage}. Raw response: ${response.substring(0, 200)}...`);
               }
             }
-
-            const validation = this.validationService.validateResponse(data, schema);
             
-            if (!validation.valid) {
-              throw new Error(`LLM returned invalid chart: ${validation.error}`);
-            }
-
-            return validation.data;
-          }),
+            return from(this.validationService.validateResponse(data, schema)).pipe(
+              map((validation) => {
+                if (!validation.valid) {
+                  throw new Error(`LLM returned invalid chart: ${validation.error}`);
+                }
+                return validation.data;
+              })
+            );
+      }),
           catchError((error) => {
             console.error('HTTP error during chart generation:', error);
             return throwError(() => new Error(`Failed to connect to backend: ${error.message || error}`));
@@ -134,9 +138,9 @@ ${JSON.stringify(example, null, 2)}`;
 - Follow the provided schema structure strictly
 - Use the provided example as reference but create different data
 
-⚠️ CRITICAL: The series.type field MUST be "${actualSeriesType}", not "bar" or "line" or any other type!${chartType === 'area' ? ' For area charts, also include areaStyle: {} in the series.' : ''}
+⚠️ CRITICAL: The series.type field MUST be "${actualSeriesType}", not "line" or any other type!${chartType === 'area' ? ' For area charts, also include areaStyle: {} in the series.' : ''}
 
-🔥 REMEMBER: You are creating a ${chartType} chart, NOT a bar chart!`
+🔥 REMEMBER: You are creating a ${chartType} chart, NOT any other chart type!`
     });
 
     return messages;

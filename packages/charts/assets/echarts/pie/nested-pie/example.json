@@ -1,8 +1,24 @@
 {
-  "title": "Nested Pie Chart",
-  "allOf": [
+  "type": "pie",
+  "title": { "text": "Nested Pie Chart" },
+  "series": [
     {
-      "$ref": "../../base/base.json"
+      "type": "pie",
+      "radius": ["0%", "30%"],
+      "data": [
+        { "value": 1048, "name": "Category A" },
+        { "value": 735, "name": "Category B" },
+        { "value": 580, "name": "Category C" }
+      ]
+    },
+    {
+      "type": "pie",
+      "radius": ["40%", "70%"],
+      "data": [
+        { "value": 1048, "name": "Search Engine" },
+        { "value": 735, "name": "Direct" },
+        { "value": 580, "name": "Email" }
+      ]
     }
   ]
 }

@@ -1,11 +1,8 @@
 {
   "variation": "sunburst-with-levels",
-  "extra": {
-    "series": [
-      {
-        "data": [],
-        "levels": [{}, {}]
-      }
-    ]
-  }
+  "series": [{
+    "type": "sunburst",
+    "data": [],
+    "levels": [{}, {}]
+  }]
 }

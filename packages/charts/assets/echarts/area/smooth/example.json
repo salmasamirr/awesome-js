@@ -1,10 +1,17 @@
 {
-  "title": "Smooth Area Chart",
+  "type": "line",
+  "title": { "text": "Smooth Area Chart" },
+  "xAxis": {
+    "type": "category",
+    "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  },
+  "yAxis": { "type": "value" },
   "series": [
     {
       "type": "line",
       "smooth": true,
-      "areaStyle": {}
+      "areaStyle": {},
+      "data": [120, 132, 101, 134, 90, 230, 210]
     }
   ]
 }

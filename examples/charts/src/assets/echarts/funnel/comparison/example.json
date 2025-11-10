@@ -1,7 +1,14 @@
 {
+  "type": "funnel",
   "title": "Comparison Funnel Chart",
   "series": [
-    { "type": "funnel", "sort": "ascending" },
-    { "type": "funnel", "sort": "descending" }
+    {
+      "type": "funnel",
+      "sort": "ascending"
+    },
+    {
+      "type": "funnel",
+      "sort": "descending"
+    }
   ]
 }

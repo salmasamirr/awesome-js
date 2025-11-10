@@ -1,10 +1,17 @@
 {
-  "title": "Stacked Area Chart",
+  "type": "line",
+  "title": { "text": "Stacked Area Chart" },
+  "xAxis": {
+    "type": "category",
+    "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  },
+  "yAxis": { "type": "value" },
   "series": [
     {
       "type": "line",
       "stack": "total",
-      "areaStyle": {}
+      "areaStyle": {},
+      "data": [120, 132, 101, 134, 90, 230, 210]
     }
   ]
 }

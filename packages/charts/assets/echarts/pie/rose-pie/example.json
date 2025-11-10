@@ -1,22 +1,17 @@
 {
-  "title": "Rose Pie Chart",
-  "allOf": [
+  "type": "pie",
+  "title": { "text": "Rose Pie Chart" },
+  "series": [
     {
-      "$ref": "../../base/base.json"
+      "type": "pie",
+      "roseType": "radius",
+      "data": [
+        { "value": 1048, "name": "Search Engine" },
+        { "value": 735, "name": "Direct" },
+        { "value": 580, "name": "Email" },
+        { "value": 484, "name": "Union Ads" },
+        { "value": 300, "name": "Video Ads" }
+      ]
     }
-  ],
-  "properties": {
-    "series": {
-      "items": {
-        "properties": {
-          "roseType": {
-            "enum": [
-              "radius",
-              "area"
-            ]
-          }
-        }
-      }
-    }
-  }
+  ]
 }

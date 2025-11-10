@@ -86,28 +86,41 @@ export class ChatComponent implements OnInit, OnDestroy {
       .trim();
   }
 
+  // إصلاح الـ type هنا
+  handleEnter(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    if (keyboardEvent.key === 'Enter' && !keyboardEvent.shiftKey) {
+      event.preventDefault();
+      this.send();
+    }
+  }
+
   send() {
     const msg = this.message.trim();
     if (!msg) return;
 
+    if (msg.length < 10) {
+      this.messages.push({
+        sender: 'ai',
+        text: 'Please provide a more detailed description of your chart requirements for better results. Include information about your data, time periods, and axis preferences.'
+      });
+      return;
+    }
+
     this.messages.push({ sender: 'user', text: msg });
     this.loading = true;
 
-    const chartSub = this.llm.generateChartOptions(msg, this.selectedChartType, this.selectedVariation)
+    const chartSub = this.llm.generateChartOptions(msg, this.selectedChartType, this.selectedVariation, this.messages)
       .subscribe({
         next: (options) => {
           this.chartGenerated.emit(options);
-          this.messages.push({
-            sender: 'ai',
-            text: 'Chart generated successfully! 🎨'
-          });
           this.loading = false;
         },
         error: (err) => {
           console.error('Error generating chart:', err);
           this.messages.push({
             sender: 'ai',
-            text: 'Sorry, I encountered an error while generating the chart. Please try again. 😢'
+            text: 'Sorry, I encountered an error while generating the chart. Please try again with more specific details about your data and requirements. 😢'
           });
           this.loading = false;
         }

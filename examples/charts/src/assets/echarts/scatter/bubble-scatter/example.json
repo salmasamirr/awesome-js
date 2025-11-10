@@ -1,23 +1,18 @@
 {
-  "title": "Bubble Scatter Chart Schema",
-  "allOf": [
+  "type": "scatter",
+  "title": { "text": "Bubble Scatter Chart" },
+  "xAxis": { "type": "value" },
+  "yAxis": { "type": "value" },
+  "series": [
     {
-      "$ref": "../../base/base.json"
+      "type": "scatter",
+      "symbolSize": 20,
+      "data": [
+        [10, 8, 10000],
+        [20, 15, 20000],
+        [30, 25, 30000],
+        [40, 35, 40000]
+      ]
     }
-  ],
-  "properties": {
-    "series": {
-      "items": {
-        "properties": {
-          "symbolSize": {
-            "type": [
-              "number",
-              "string",
-              "function"
-            ]
-          }
-        }
-      }
-    }
-  }
+  ]
 }

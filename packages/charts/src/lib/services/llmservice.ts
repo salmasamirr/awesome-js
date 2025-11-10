@@ -5,10 +5,15 @@ import { map, catchError, switchMap } from 'rxjs/operators';
 import { SchemaManagerService } from './schema-manager.service';
 import { ValidationService } from './validation.service';
 
+interface ChatMessage {
+  sender: 'user' | 'ai';
+  text: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LLMService {
   private readonly apiUrl = 'http://localhost:5000/chat';
-  private messageHistory: string[] = [];
+  private messageHistory: ChatMessage[] = [];
 
   constructor(
     private http: HttpClient,
@@ -16,7 +21,7 @@ export class LLMService {
     private validationService: ValidationService
   ) { }
 
-  generateChartOptions(query: string, chartType: string = 'bar', variation?: string): Observable<any> {
+  generateChartOptions(query: string, chartType: string = 'bar', variation?: string, chatHistory?: ChatMessage[]): Observable<any> {
     const schemaPromise = Promise.all([
       this.schemaManager.loadCombinedSchema(chartType, variation),
       this.schemaManager.loadExample(chartType, variation)
@@ -24,9 +29,9 @@ export class LLMService {
 
     return from(schemaPromise).pipe(
       switchMap(([schema, example]) => {
-        const messages = this.generatePrompt(query, chartType, variation, schema, example);
+        const messages = this.generatePrompt(query, chartType, variation, schema, example, chatHistory);
         const body = {
-          message: this.formatMessageForBackend(messages),
+          messages: messages,
           chartType: chartType,
           variation: variation || '',
           session_id: `chart-session-${Date.now()}`
@@ -50,7 +55,6 @@ export class LLMService {
                 throw new Error(`Invalid JSON response from LLM service: ${errorMessage}. Raw response: ${response.substring(0, 200)}...`);
               }
             }
-            
             return from(this.validationService.validateResponse(data, schema)).pipe(
               map((validation) => {
                 if (!validation.valid) {
@@ -59,7 +63,7 @@ export class LLMService {
                 return validation.data;
               })
             );
-      }),
+          }),
           catchError((error) => {
             console.error('HTTP error during chart generation:', error);
             return throwError(() => new Error(`Failed to connect to backend: ${error.message || error}`));
@@ -72,77 +76,85 @@ export class LLMService {
     );
   }
 
-  private formatMessageForBackend(messages: any[]): string {
-    const allMessages = [
-      ...this.messageHistory,
-      ...messages.map(msg => `${msg.role}: ${msg.content}`)
-    ];
-
-    return allMessages.join('\n\n');
-  }
-
-  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any): any[] {
+  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any, chatHistory?: ChatMessage[]): any[] {
     const messages: any[] = [];
 
     const actualSeriesType = chartType === 'area' ? 'line' : chartType;
     const areaChartNote = chartType === 'area' ? '\nIMPORTANT: For area charts, use series type "line" with areaStyle property.' : '';
 
-    messages.push({
-      role: "system",
-      content: `You are an ECharts expert. Generate a complete ECharts configuration in JSON format for a "${chartType}" chart.
+    let systemPrompt = `You are an ECharts expert. Generate a complete ECharts configuration in JSON format for a "${chartType}" chart.
 
-🚨 CRITICAL REQUIREMENTS - READ CAREFULLY:
-1. You MUST return ONLY valid JSON, no other text or explanations
-2. The chart type MUST be strictly "${chartType}" - NOT any type, but this type "${chartType}"
-3. The series type MUST be "${actualSeriesType}"${areaChartNote}
-4. Follow the provided schema structure strictly
-5. Use the provided example as a reference but create different data
-6. The JSON must be a complete ECharts option object that can be used directly with echarts.setOption()
-
-⚠️ WARNING: If you return a wrong chart type, your response will be rejected!`
-    });
+🚨 CRITICAL REQUIREMENTS:
+1. Return ONLY valid JSON, no other text
+2. Chart type MUST be "${chartType}"
+3. Series type MUST be "${actualSeriesType}"${areaChartNote}
+4. Create realistic data based on the user's detailed requirements
+5. Include title, xAxis, yAxis, series with data
+6. Make it visually appealing and match user specifications`;
 
     if (schema && Object.keys(schema).length > 0) {
-      const schemaContent = `Follow this ECharts schema structure:
+      systemPrompt += `\n\nFollow this schema structure:
 ${JSON.stringify(schema, null, 2)}`;
-
-      messages.push({
-        role: "system",
-        content: schemaContent
-      });
     }
 
     if (example && Object.keys(example).length > 0) {
-      const exampleContent = `Here is an example chart configuration for reference (create different data):
+      systemPrompt += `\n\nExample reference (create different data):
 ${JSON.stringify(example, null, 2)}`;
-
-      messages.push({
-        role: "system",
-        content: exampleContent
-      });
     }
 
     messages.push({
+      role: "system",
+      content: systemPrompt
+    });
+
+    if (chatHistory && chatHistory.length > 0) {
+      for (const msg of chatHistory) {
+        if (!(msg.sender === 'user' && msg.text.trim() === query.trim())) {
+          messages.push({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+          });
+        }
+      }
+    }
+
+    const descriptiveUserMessage = this.createEnhancedDescriptiveUserMessage(query, chartType, variation);
+
+    messages.push({
       role: "user",
-      content: `Create a ${chartType} chart for: "${query}"
-
-🚨 MANDATORY REQUIREMENTS - FOLLOW STRICTLY:
-- Return ONLY valid JSON, no other text or explanations
-- Chart type MUST be strictly: ${chartType} - NOT any type, but this type "${chartType}"
-- Series type MUST be strictly: ${actualSeriesType}${areaChartNote}
-- Title should reflect the ${chartType} chart type
-- Include realistic data for: ${query}
-- Must have: title, xAxis, yAxis, series with data
-- Generate meaningful categories and values
-- Make it visually appealing
-- Follow the provided schema structure strictly
-- Use the provided example as reference but create different data
-
-⚠️ CRITICAL: The series.type field MUST be "${actualSeriesType}", not "line" or any other type!${chartType === 'area' ? ' For area charts, also include areaStyle: {} in the series.' : ''}
-
-🔥 REMEMBER: You are creating a ${chartType} chart, NOT any other chart type!`
+      content: descriptiveUserMessage
     });
 
     return messages;
+  }
+
+  private createEnhancedDescriptiveUserMessage(query: string, chartType: string, variation?: string): string {
+    let descriptiveMessage = `CREATE CHART REQUEST - ${chartType.toUpperCase()}\n\n`;
+
+    descriptiveMessage += `📊 CHART SPECIFICATIONS:\n`;
+    descriptiveMessage += `• Chart Type: ${chartType}\n`;
+    if (variation) {
+      descriptiveMessage += `• Variation: ${variation}\n`;
+    }
+    descriptiveMessage += `• User Requirements: "${query}"\n\n`;
+
+    descriptiveMessage += `🎯 IMPLEMENTATION REQUIREMENTS:\n`;
+    descriptiveMessage += `• Generate realistic sample data that matches the context\n`;
+    descriptiveMessage += `• Include meaningful titles and axis labels\n`;
+    descriptiveMessage += `• Ensure proper data visualization best practices\n`;
+    descriptiveMessage += `• Create professional and visually appealing design\n`;
+
+    if (chartType === 'area') {
+      descriptiveMessage += `• Use line series with areaStyle for area chart visualization\n`;
+    }
+
+    descriptiveMessage += `\n📈 EXPECTED OUTPUT:\n`;
+    descriptiveMessage += `A complete ECharts configuration in valid JSON format that accurately represents the described data scenario and follows all chart type specifications.`;
+
+    return descriptiveMessage;
+  }
+
+  clearMessageHistory(): void {
+    this.messageHistory = [];    
   }
 }

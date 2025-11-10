@@ -1,19 +1,20 @@
 {
-  "title": "Effect Scatter Chart Schema",
-  "allOf": [
+  "type": "scatter",
+  "title": { "text": "Effect Scatter Chart" },
+  "xAxis": { "type": "value" },
+  "yAxis": { "type": "value" },
+  "series": [
     {
-      "$ref": "../../base/base.json"
+      "type": "scatter",
+      "rippleEffect": {
+        "brushType": "stroke"
+      },
+      "data": [
+        [10, 8],
+        [20, 15],
+        [30, 25],
+        [40, 35]
+      ]
     }
-  ],
-  "properties": {
-    "series": {
-      "items": {
-        "properties": {
-          "rippleEffect": {
-            "type": "object"
-          }
-        }
-      }
-    }
-  }
+  ]
 }

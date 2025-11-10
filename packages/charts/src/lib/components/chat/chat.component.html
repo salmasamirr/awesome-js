@@ -14,14 +14,32 @@
   </div>
 
   <div class="chat__input-area" *ngIf="!isChatClosed">
+    <div class="chat__helper-text" *ngIf="messages.length === 0">
+      <p><strong>💡 Tips for better charts:</strong></p>
+      <ul>
+        <li>Specify your data type (sales, users, revenue, etc.)</li>
+        <li>Mention time period (last year, Q1 2024, monthly, etc.)</li>
+        <li>Describe axes (time on X-axis, amount on Y-axis)</li>
+        <li>Add any special requirements (show trends, compare categories, etc.)</li>
+      </ul>
+    </div>
+
     <div class="chat__input-container">
-      <input [(ngModel)]="message" class="chat__input" (keydown.enter)="send()" [disabled]="loading"
-        placeholder="Describe the chart you want..." />
+      <textarea [(ngModel)]="message" class="chat__input chat__input--textarea" (keydown.enter)="handleEnter($event)"
+        [disabled]="loading" rows="2"
+        placeholder="Describe your chart needs in detail (e.g., 'I need a chart for last year sales with time on horizontal axis and sales amount on vertical axis')"></textarea>
       <button (click)="send()" class="chat__button" [disabled]="loading || !message.trim()"
         [class.chat__button--loading]="loading">
         <span class="chat__button-icon"> <img src="assets/icons/send-message.png" alt="Send Icon">
         </span>
       </button>
+    </div>
+
+    <div class="chat__input-feedback">
+      <span class="chat__char-count" [class.chat__char-count--warning]="message.length < 20">
+        {{ message.length }} characters
+        <span *ngIf="message.length < 20" class="chat__suggestion"> - Add more details for better results</span>
+      </span>
     </div>
     <div class="chat__selects-container">
       <select [(ngModel)]="selectedChartType" class="chat__select chat__select--chart" [disabled]="loading"

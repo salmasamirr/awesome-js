@@ -1,12 +1,41 @@
 {
-  "variation": "candlestick-with-volume",
-  "extra": {
-    "yAxis": [
-      null,
-      { "name": "Volume", "position": "right" }
-    ],
-    "series": [
-      { "type": "bar", "name": "Volume", "yAxisIndex": 1 }
-    ]
-  }
+  "type": "candlestick",
+  "title": {
+    "text": "Candlestick with Volume"
+  },
+  "xAxis": {
+    "type": "category",
+    "data": ["Day1", "Day2", "Day3", "Day4", "Day5"]
+  },
+  "yAxis": [
+    {
+      "type": "value",
+      "scale": true,
+      "name": "Price"
+    },
+    {
+      "type": "value",
+      "name": "Volume", 
+      "position": "right"
+    }
+  ],
+  "series": [
+    {
+      "type": "candlestick",
+      "data": [
+        [100, 120, 90, 110],
+        [110, 130, 100, 120], 
+        [120, 140, 110, 130],
+        [130, 150, 120, 140],
+        [140, 160, 130, 150]
+      ],
+      "name": "Stock Price"
+    },
+    {
+      "type": "bar",
+      "name": "Volume",
+      "yAxisIndex": 1,
+      "data": [1000, 1500, 1200, 1800, 2000]
+    }
+  ]
 }

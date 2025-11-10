@@ -2,7 +2,7 @@
   "title": "Pie Chart Base Schema",
   "allOf": [
     {
-      "$ref": "../base/base.json"
+      "$ref": "base.json"
 
     }
   ],

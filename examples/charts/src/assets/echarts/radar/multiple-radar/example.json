@@ -1,7 +1,51 @@
 {
-  "title": "Multiple Radar Chart",
+  "type": "radar",
+  "radar": {
+    "indicator": [
+      {
+        "name": "Sales",
+        "max": 6500
+      },
+      {
+        "name": "Administration",
+        "max": 16000
+      },
+      {
+        "name": "Technology",
+        "max": 30000
+      }
+    ]
+  },
   "series": [
-    { "type": "radar", "areaStyle": {} },
-    { "type": "radar", "lineStyle": { "type": "dashed" } }
+    {
+      "type": "radar",
+      "areaStyle": {},
+      "data": [
+        {
+          "value": [
+            4200,
+            3000,
+            20000
+          ],
+          "name": "Data 1"
+        }
+      ]
+    },
+    {
+      "type": "radar",
+      "lineStyle": {
+        "type": "dashed"
+      },
+      "data": [
+        {
+          "value": [
+            5000,
+            14000,
+            28000
+          ],
+          "name": "Data 2"
+        }
+      ]
+    }
   ]
 }

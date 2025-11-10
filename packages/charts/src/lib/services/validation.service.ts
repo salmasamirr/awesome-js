@@ -14,8 +14,8 @@ export class ValidationService {
   private initializationPromise: Promise<void> | null = null;
 
   constructor(private http: HttpClient) {
-    this.ajv = new Ajv({ 
-      allErrors: true, 
+    this.ajv = new Ajv({
+      allErrors: true,
       strict: false,
       validateSchema: false,
       removeAdditional: false
@@ -31,13 +31,12 @@ export class ValidationService {
     this.initializationPromise = (async () => {
       try {
         this.baseSchema = await this.loadBaseSchema();
-        
+
         if (!this.baseSchema || Object.keys(this.baseSchema).length === 0) {
           throw new Error('Base schema is empty or not found');
         }
-        
+
         this.baseValidator = this.ajv.compile(this.baseSchema);
-        console.info('Base schema initialized successfully');
       } catch (error) {
         console.error('CRITICAL: Failed to load base schema', error);
         throw new Error('Cannot initialize validation service: ' + error);
@@ -49,7 +48,7 @@ export class ValidationService {
 
   private async loadBaseSchema(): Promise<any> {
     const basePath = `${this.basePath}/base/base.json`;
-    
+
     try {
       const result = await lastValueFrom(
         this.http.get<any>(basePath).pipe(
@@ -58,11 +57,11 @@ export class ValidationService {
           })
         )
       );
-      
+
       if (!result || Object.keys(result).length === 0) {
         throw new Error('Base schema file is empty');
       }
-      
+
       return result;
     } catch (error) {
       console.error('Failed to load base schema:', error);
@@ -72,7 +71,7 @@ export class ValidationService {
 
   extractJSON(response: any): any {
     if (!response) return null;
-    
+
     try {
       const rawData = response.response || response;
       return typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
@@ -87,16 +86,16 @@ export class ValidationService {
       try {
         await this.initializeBaseSchema();
       } catch (error) {
-        return { 
-          valid: false, 
+        return {
+          valid: false,
           error: `Validation service not initialized: ${error}`,
-          data: null 
+          data: null
         };
       }
     }
 
     const data = this.extractJSON(response);
-    
+
     if (!data) {
       return { valid: false, error: 'Invalid JSON response', data: null };
     }
@@ -105,20 +104,20 @@ export class ValidationService {
       return { valid: false, error: 'Missing or invalid series array', data };
     }
 
-    const hasValidSeries = data.series.some((series: any) => 
+    const hasValidSeries = data.series.some((series: any) =>
       series && (series.data || Array.isArray(series.data))
     );
-    
+
     if (!hasValidSeries) {
       return { valid: false, error: 'No valid series found with data', data };
     }
 
     let validator = this.baseValidator!;
-    
+
     if (schema && Object.keys(schema).length > 0) {
       try {
         const cleanSchema = this.cleanSchemaForValidation(schema);
-        
+
         const mergedSchema = {
           ...this.baseSchema,
           ...cleanSchema,
@@ -127,11 +126,11 @@ export class ValidationService {
             ...(cleanSchema.properties || {})
           }
         };
-        
+
         if (mergedSchema.required) {
           mergedSchema.required = ['series'];
         }
-        
+
         if (mergedSchema.properties?.series?.items?.properties?.type) {
           const typeProp = mergedSchema.properties.series.items.properties.type;
           if (typeProp && typeProp.const) {
@@ -140,12 +139,12 @@ export class ValidationService {
             };
           }
         }
-        
+
         delete mergedSchema.allOf;
         delete mergedSchema.$ref;
         delete mergedSchema.anyOf;
         delete mergedSchema.oneOf;
-        
+
         validator = this.ajv.compile(mergedSchema);
       } catch (error) {
         console.warn('Schema compilation failed, using base validator:', error);
@@ -154,7 +153,7 @@ export class ValidationService {
 
     try {
       const valid = validator(data);
-      
+
       if (!valid) {
         const criticalErrors = validator.errors?.filter(err => {
           const path = err.instancePath || err.schemaPath || '';
@@ -171,13 +170,13 @@ export class ValidationService {
         if (criticalErrors.length === 0) {
           return { valid: true, data };
         }
-        
-        const criticalErrorMsg = criticalErrors.map(err => 
+
+        const criticalErrorMsg = criticalErrors.map(err =>
           `${err.instancePath || err.schemaPath} ${err.message}`
         ).join(', ');
         return { valid: false, error: `Validation errors: ${criticalErrorMsg}`, data };
       }
-      
+
       return { valid: true, data };
     } catch (validationError) {
       console.warn('Validation error:', validationError);
@@ -201,7 +200,7 @@ export class ValidationService {
 
     if (schema.allOf && Array.isArray(schema.allOf)) {
       if (!cleaned.properties) cleaned.properties = {};
-      
+
       schema.allOf.forEach((item: any) => {
         if (item.$ref) {
           return;

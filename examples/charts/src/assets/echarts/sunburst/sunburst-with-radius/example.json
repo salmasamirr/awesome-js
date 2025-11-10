@@ -1,8 +1,11 @@
 {
   "variation": "sunburst-with-radius",
-  "extra": {
-    "series": [
-      { "radius": [0, "90%"] }
+  "series": [{
+    "type": "sunburst",
+    "radius": [0, "90%"],
+    "data": [
+      { "name": "A", "value": 10 },
+      { "name": "B", "value": 20 }
     ]
-  }
+  }]
 }

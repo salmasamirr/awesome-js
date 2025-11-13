@@ -4,11 +4,30 @@ import { CommonModule } from '@angular/common';
 import { LLMService } from '../../services/llmservice';
 import { SchemaManagerService } from '../../services/schema-manager.service';
 import { Subscription } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'awesome-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatIconModule,
+    MatListModule,
+    MatTooltipModule 
+  ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
@@ -35,7 +54,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.loadChartTypes();
-    await this.loadVariations(); 
+    await this.loadVariations();
   }
 
   ngOnDestroy() {
@@ -71,7 +90,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.error(`Error loading variations for chart type '${this.selectedChartType}':`, error);
-      this.variations = []; 
+      this.variations = [];
     }
   }
 
@@ -86,7 +105,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       .trim();
   }
 
-  // إصلاح الـ type هنا
   handleEnter(event: Event) {
     const keyboardEvent = event as KeyboardEvent;
     if (keyboardEvent.key === 'Enter' && !keyboardEvent.shiftKey) {
@@ -99,7 +117,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     const msg = this.message.trim();
     if (!msg) return;
 
-    if (msg.length < 10) {
+    if (msg.length < 20) {
       this.messages.push({
         sender: 'ai',
         text: 'Please provide a more detailed description of your chart requirements for better results. Include information about your data, time periods, and axis preferences.'

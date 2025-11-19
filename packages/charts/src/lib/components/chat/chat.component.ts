@@ -4,11 +4,30 @@ import { CommonModule } from '@angular/common';
 import { LLMService } from '../../services/llmservice';
 import { SchemaManagerService } from '../../services/schema-manager.service';
 import { Subscription } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'awesome-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatIconModule,
+    MatListModule,
+    MatTooltipModule 
+  ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
@@ -35,7 +54,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.loadChartTypes();
-    await this.loadVariations(); 
+    await this.loadVariations();
   }
 
   ngOnDestroy() {
@@ -71,7 +90,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.error(`Error loading variations for chart type '${this.selectedChartType}':`, error);
-      this.variations = []; 
+      this.variations = [];
     }
   }
 
@@ -86,28 +105,40 @@ export class ChatComponent implements OnInit, OnDestroy {
       .trim();
   }
 
+  handleEnter(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    if (keyboardEvent.key === 'Enter' && !keyboardEvent.shiftKey) {
+      event.preventDefault();
+      this.send();
+    }
+  }
+
   send() {
     const msg = this.message.trim();
     if (!msg) return;
 
+    if (msg.length < 20) {
+      this.messages.push({
+        sender: 'ai',
+        text: 'Please provide a more detailed description of your chart requirements for better results. Include information about your data, time periods, and axis preferences.'
+      });
+      return;
+    }
+
     this.messages.push({ sender: 'user', text: msg });
     this.loading = true;
 
-    const chartSub = this.llm.generateChartOptions(msg, this.selectedChartType, this.selectedVariation)
+    const chartSub = this.llm.generateChartOptions(msg, this.selectedChartType, this.selectedVariation, this.messages)
       .subscribe({
         next: (options) => {
           this.chartGenerated.emit(options);
-          this.messages.push({
-            sender: 'ai',
-            text: 'Chart generated successfully! 🎨'
-          });
           this.loading = false;
         },
         error: (err) => {
           console.error('Error generating chart:', err);
           this.messages.push({
             sender: 'ai',
-            text: 'Sorry, I encountered an error while generating the chart. Please try again. 😢'
+            text: 'Sorry, I encountered an error while generating the chart. Please try again with more specific details about your data and requirements. 😢'
           });
           this.loading = false;
         }

@@ -1,4 +1,5 @@
 {
+  "type": "gauge",
   "title": "Multiple Gauge Chart",
   "series": [
     { "type": "gauge", "radius": "50%" },

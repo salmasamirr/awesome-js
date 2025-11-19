@@ -1,19 +1,15 @@
 {
-  "title": "Doughnut Pie Chart",
-  "allOf": [
+  "type": "pie",
+  "title": { "text": "Doughnut Pie Chart" },
+  "series": [
     {
-      "$ref": "../../base/base.json"
+      "type": "pie",
+      "radius": ["40%", "70%"],
+      "data": [
+        { "value": 1048, "name": "Search Engine" },
+        { "value": 735, "name": "Direct" },
+        { "value": 580, "name": "Email" }
+      ]
     }
-  ],
-  "properties": {
-    "series": {
-      "items": {
-        "properties": {
-          "radius": {
-            "type": "array"
-          }
-        }
-      }
-    }
-  }
+  ]
 }

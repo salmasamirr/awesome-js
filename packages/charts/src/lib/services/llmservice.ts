@@ -5,6 +5,11 @@ import { switchMap, map, catchError } from 'rxjs/operators';
 import { SchemaManagerService } from './schema-manager.service';
 import { ValidationService } from './validation.service';
 
+interface ChatMessage {
+  sender: 'user' | 'ai';
+  text: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LLMService {
   private readonly apiUrl = 'http://127.0.0.1:1234/v1/chat/completions';

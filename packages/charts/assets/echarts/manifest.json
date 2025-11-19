@@ -26,9 +26,9 @@
     ],
     "bar": [
       "horizontal",
-      "stacked",
       "negative",
       "racing",
+      "stacked",
       "waterfall"
     ],
     "boxplot": [
@@ -68,9 +68,9 @@
       "parallel-with-multiple-lines"
     ],
     "pie": [
-      "doughnut-pie",
-      "rose-pie",
-      "nested-pie"
+      "doughnut(Ring)-pie",
+      "nested-pie",
+      "rose-pie"
     ],
     "radar": [
       "filled-radar",

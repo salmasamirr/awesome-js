@@ -46,7 +46,7 @@ export class SchemaManagerService {
     if (!manifest?.chartTypes || !Array.isArray(manifest.chartTypes)) {
       console.warn('chartTypes not found in manifest, using empty array');
       this.chartTypesCache = [];
-      return [];
+      return this.chartTypesCache;
     }
 
     this.chartTypesCache = manifest.chartTypes;

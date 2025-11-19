@@ -1,5 +1,5 @@
-
 {
+  "type": "line",
   "title": { "text": "Basic Line" },
   "xAxis": { "type": "category", "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] },
   "yAxis": { "type": "value" },

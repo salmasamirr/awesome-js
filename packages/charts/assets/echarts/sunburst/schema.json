@@ -2,15 +2,19 @@
   "title": "Sunburst Chart Base Schema",
   "type": "object",
   "properties": {
+    "variation": { "type": "string" },
     "series": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "type": { "const": "sunburst" },
-          "radius": { "type": "string" }
-        }
+          "type": { "const": "sunburst" }
+        },
+        "required": ["type"],
+        "additionalProperties": true
       }
     }
-  }
+  },
+  "required": ["series"],
+  "additionalProperties": true
 }

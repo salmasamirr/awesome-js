@@ -1,22 +1,17 @@
 {
-  "title": "Large Scatter Chart Schema",
-  "allOf": [
+  "type": "scatter",
+  "title": { "text": "Large Scatter Chart" },
+  "xAxis": { "type": "value" },
+  "yAxis": { "type": "value" },
+  "series": [
     {
-      "$ref": "../../base/base.json"
+      "type": "scatter",
+      "large": true,
+      "largeThreshold": 100,
+      "data": [
+        [10, 8], [20, 15], [30, 25], [40, 35],
+        [15, 12], [25, 18], [35, 28], [45, 38]
+      ]
     }
-  ],
-  "properties": {
-    "series": {
-      "items": {
-        "properties": {
-          "large": {
-            "type": "boolean"
-          },
-          "largeThreshold": {
-            "type": "number"
-          }
-        }
-      }
-    }
-  }
+  ]
 }

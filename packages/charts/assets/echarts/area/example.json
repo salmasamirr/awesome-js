@@ -1,19 +1,19 @@
 {
-    "title": { "text": "Basic Area" },
-    "tooltip": { "trigger": "axis" },
-    "xAxis": {
-      "type": "category",
-      "boundaryGap": false,
-      "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    },
-    "yAxis": { "type": "value" },
-    "series": [
-      {
-        "name": "Series 1",
-        "type": "line",
-        "areaStyle": {},
-        "data": [120, 132, 101, 134, 90, 230, 210]
-      }
-    ]
-
+  "type": "line",
+  "title": { "text": "Basic Area" },
+  "tooltip": { "trigger": "axis" },
+  "xAxis": {
+    "type": "category",
+    "boundaryGap": false,
+    "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  },
+  "yAxis": { "type": "value" },
+  "series": [
+    {
+      "name": "Series 1",
+      "type": "line",
+      "areaStyle": {},
+      "data": [120, 132, 101, 134, 90, 230, 210]
+    }
+  ]
 }

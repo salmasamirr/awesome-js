@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from, throwError } from 'rxjs';
-import { map, catchError, switchMap } from 'rxjs/operators';
+import { switchMap, map, catchError } from 'rxjs/operators';
 import { SchemaManagerService } from './schema-manager.service';
 import { ValidationService } from './validation.service';
 
@@ -12,8 +12,8 @@ interface ChatMessage {
 
 @Injectable({ providedIn: 'root' })
 export class LLMService {
-  private readonly apiUrl = 'http://localhost:5000/chat';
-  private messageHistory: ChatMessage[] = [];
+  private readonly apiUrl = 'http://127.0.0.1:1234/v1/chat/completions';
+  private messageHistory: string[] = [];
 
   constructor(
     private http: HttpClient,
@@ -21,140 +21,92 @@ export class LLMService {
     private validationService: ValidationService
   ) { }
 
-  generateChartOptions(query: string, chartType: string = 'bar', variation?: string, chatHistory?: ChatMessage[]): Observable<any> {
-    const schemaPromise = Promise.all([
-      this.schemaManager.loadCombinedSchema(chartType, variation),
-      this.schemaManager.loadExample(chartType, variation)
-    ]);
-
-    return from(schemaPromise).pipe(
+  generateChartOptions(query: string, chartType: string = 'bar', variation?: string): Observable<any> {
+    return from(
+      Promise.all([
+        this.schemaManager.loadCombinedSchema(chartType, variation),
+        this.schemaManager.loadExample(chartType, variation)
+      ])
+    ).pipe(
       switchMap(([schema, example]) => {
-        const messages = this.generatePrompt(query, chartType, variation, schema, example, chatHistory);
+        const messages = this.generatePrompt(query, chartType, variation, schema, example);
+
         const body = {
-          messages: messages,
-          chartType: chartType,
-          variation: variation || '',
-          session_id: `chart-session-${Date.now()}`
+          model: "meta-llama-3.1-8b-instruct",
+          messages: [
+            { role: "system", content: "You are an ECharts expert. Return only valid JSON, no explanations." },
+            { role: "user", content: this.formatMessageForBackend(messages) }
+          ],
+          temperature: 0.7
         };
 
-        const headers = new HttpHeaders({
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        });
+        const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
         return this.http.post<any>(this.apiUrl, body, { headers }).pipe(
-          switchMap((response) => {
-            let data = response;
-            if (typeof response === 'string') {
-              try {
-                data = JSON.parse(response);
-              } catch (e) {
-                console.error('Failed to parse JSON response:', e);
-                console.error('Raw response:', response);
-                const errorMessage = e instanceof Error ? e.message : 'Unknown parsing error';
-                throw new Error(`Invalid JSON response from LLM service: ${errorMessage}. Raw response: ${response.substring(0, 200)}...`);
-              }
+          map(response => {
+
+            let rawContent = response?.choices?.[0]?.message?.content || response;
+
+            rawContent = rawContent.replace(/```json|```/g, '').trim();
+
+            let data;
+            try {
+              data = JSON.parse(rawContent);
+            } catch (err) {
+              console.error('Invalid JSON returned by LLM:', rawContent);
+              throw new Error('Invalid JSON returned by LLM.');
             }
-            return from(this.validationService.validateResponse(data, schema)).pipe(
-              map((validation) => {
-                if (!validation.valid) {
-                  throw new Error(`LLM returned invalid chart: ${validation.error}`);
-                }
-                return validation.data;
-              })
-            );
+
+            if (Array.isArray(data.xAxis)) data.xAxis = { data: data.xAxis };
+            if (Array.isArray(data.yAxis)) data.yAxis = { data: data.yAxis };
+
+            return data;
           }),
-          catchError((error) => {
-            console.error('HTTP error during chart generation:', error);
-            return throwError(() => new Error(`Failed to connect to backend: ${error.message || error}`));
-          })
+          switchMap((parsedData: any) =>
+            from(this.validationService.validateResponse(parsedData, schema)).pipe(
+              switchMap((result) => {
+                if (!result.valid) {
+                  console.error('LLM returned invalid chart:', result.error);
+                  return throwError(() => new Error(`LLM returned invalid chart: ${result.error}`));
+                }
+                return [result.data];
+              })
+            )
+          ),
+          catchError((error) => throwError(() => new Error(`Failed to generate chart: ${error.message || error}`)))
         );
       }),
-      catchError((err) => {
-        return throwError(() => err);
-      })
+      catchError(err => throwError(() => new Error(`Chart generation error: ${err.message || err}`)))
     );
   }
 
-  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any, chatHistory?: ChatMessage[]): any[] {
-    const messages: any[] = [];
+  private formatMessageForBackend(messages: any[]): string {
+    return messages.map(msg => `${msg.role}: ${msg.content}`).join('\n\n');
+  }
 
+  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any): any[] {
     const actualSeriesType = chartType === 'area' ? 'line' : chartType;
-    const areaChartNote = chartType === 'area' ? '\nIMPORTANT: For area charts, use series type "line" with areaStyle property.' : '';
+    const areaNote = chartType === 'area' ? '\nInclude areaStyle: {} in series for area chart.' : '';
 
-    let systemPrompt = `You are an ECharts expert. Generate a complete ECharts configuration in JSON format for a "${chartType}" chart.
-
-🚨 CRITICAL REQUIREMENTS:
-1. Return ONLY valid JSON, no other text
-2. Chart type MUST be "${chartType}"
-3. Series type MUST be "${actualSeriesType}"${areaChartNote}
-4. Create realistic data based on the user's detailed requirements
-5. Include title, xAxis, yAxis, series with data
-6. Make it visually appealing and match user specifications`;
+    const messages: any[] = [
+      {
+        role: 'system',
+        content: `You are an ECharts expert. Generate a full chart configuration as valid JSON only. Chart type must be "${chartType}" and series.type "${actualSeriesType}".${areaNote}`
+      },
+      {
+        role: 'user',
+        content: `Create a ${chartType} chart for: "${query}". Include realistic data, title, xAxis, yAxis, series. Follow schema strictly. Use example reference but generate different data.`
+      }
+    ];
 
     if (schema && Object.keys(schema).length > 0) {
-      systemPrompt += `\n\nFollow this schema structure:
-${JSON.stringify(schema, null, 2)}`;
+      messages.push({ role: 'system', content: `Schema reference: ${JSON.stringify(schema, null, 2)}` });
     }
 
     if (example && Object.keys(example).length > 0) {
-      systemPrompt += `\n\nExample reference (create different data):
-${JSON.stringify(example, null, 2)}`;
+      messages.push({ role: 'system', content: `Example reference: ${JSON.stringify(example, null, 2)}` });
     }
-
-    messages.push({
-      role: "system",
-      content: systemPrompt
-    });
-
-    if (chatHistory && chatHistory.length > 0) {
-      for (const msg of chatHistory) {
-        if (!(msg.sender === 'user' && msg.text.trim() === query.trim())) {
-          messages.push({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.text
-          });
-        }
-      }
-    }
-
-    const descriptiveUserMessage = this.createEnhancedDescriptiveUserMessage(query, chartType, variation);
-
-    messages.push({
-      role: "user",
-      content: descriptiveUserMessage
-    });
 
     return messages;
-  }
-
-  private createEnhancedDescriptiveUserMessage(query: string, chartType: string, variation?: string): string {
-    let descriptiveMessage = `CREATE CHART REQUEST - ${chartType.toUpperCase()}\n\n`;
-
-    descriptiveMessage += `📊 CHART SPECIFICATIONS:\n`;
-    descriptiveMessage += `• Chart Type: ${chartType}\n`;
-    if (variation) {
-      descriptiveMessage += `• Variation: ${variation}\n`;
-    }
-    descriptiveMessage += `• User Requirements: "${query}"\n\n`;
-
-    descriptiveMessage += `🎯 IMPLEMENTATION REQUIREMENTS:\n`;
-    descriptiveMessage += `• Generate realistic sample data that matches the context\n`;
-    descriptiveMessage += `• Include meaningful titles and axis labels\n`;
-    descriptiveMessage += `• Ensure proper data visualization best practices\n`;
-    descriptiveMessage += `• Create professional and visually appealing design\n`;
-
-    if (chartType === 'area') {
-      descriptiveMessage += `• Use line series with areaStyle for area chart visualization\n`;
-    }
-
-    descriptiveMessage += `\n📈 EXPECTED OUTPUT:\n`;
-    descriptiveMessage += `A complete ECharts configuration in valid JSON format that accurately represents the described data scenario and follows all chart type specifications.`;
-
-    return descriptiveMessage;
-  }
-
-  clearMessageHistory(): void {
-    this.messageHistory = [];    
   }
 }

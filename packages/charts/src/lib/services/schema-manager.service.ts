@@ -50,7 +50,8 @@ export class SchemaManagerService {
     }
 
     this.chartTypesCache = manifest.chartTypes;
-    return this.chartTypesCache ? this.chartTypesCache : [];
+ return this.chartTypesCache ?? [];
+
   }
 
   async getAvailableVariations(chartType: string): Promise<string[]> {

@@ -7,18 +7,14 @@
   </button>
 
   <div class="chat__messages" *ngIf="!isChatClosed">
-    <div *ngFor="let msg of messages" class="message message--{{msg.sender}}">
+    <div *ngFor="let msg of messages"
+      class="chat-bubble chat-bubble--{{ msg.sender === 'user' ? 'sent' : 'received' }}">
 
-      <mat-card *ngIf="msg.sender === 'user'" class="message__content message__content--user" appearance="outlined">
-        <mat-card-content class="message-with-icon">
-          <mat-icon class="message-icon">person</mat-icon>
-          <span>{{ msg.text }}</span>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card *ngIf="msg.sender === 'ai'" class="message__content message__content--ai" appearance="outlined">
-        <mat-card-content class="message-with-icon">
-          <mat-icon class="message-icon">smart_toy</mat-icon>
+      <mat-card class="chat-bubble__text" appearance="outlined">
+        <mat-card-content class="chat-bubble__inner">
+          <mat-icon class="chat-bubble__icon">
+            {{ msg.sender === 'user' ? 'person' : 'smart_toy' }}
+          </mat-icon>
           <span>{{ msg.text }}</span>
         </mat-card-content>
       </mat-card>
@@ -40,8 +36,7 @@
     <div class="chat__input-container">
       <mat-form-field appearance="outline" class="chat__input-field">
         <textarea matInput [(ngModel)]="message" (keydown.enter)="handleEnter($event)" [disabled]="loading" rows="2"
-          placeholder="Describe your chart needs in detail (e.g., 'I need a chart for last year sales with time on horizontal axis and sales amount on vertical axis')">
-        </textarea>
+          placeholder="Describe your chart needs..."></textarea>
       </mat-form-field>
 
       <button mat-fab (click)="send()" [disabled]="loading || !message.trim()" class="chat__send-btn" color="primary"
@@ -55,7 +50,9 @@
     <div class="chat__input-feedback">
       <span class="chat__char-count" [class.chat__char-count--warning]="message.length < 20">
         {{ message.length }} characters
-        <span *ngIf="message.length < 20" class="chat__suggestion"> - Add more details for better results</span>
+        <span *ngIf="message.length < 20" class="chat__suggestion">
+          - Add more details for better results
+        </span>
       </span>
     </div>
     <div class="chat__selects-container">

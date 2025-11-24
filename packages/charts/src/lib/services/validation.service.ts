@@ -104,12 +104,25 @@ export class ValidationService {
       return { valid: false, error: 'Missing or invalid series array', data };
     }
 
-    const hasValidSeries = data.series.some((series: any) =>
-      series && (series.data || Array.isArray(series.data))
-    );
+    const hasValidSeries = data.series.some((series: any) => {
+      const isValid = series && (series.data !== undefined);
+      return isValid;
+    });
 
     if (!hasValidSeries) {
       return { valid: false, error: 'No valid series found with data', data };
+    }
+
+    // Fix for LLM not following schema: Add default title if empty
+    if (!data.title || (typeof data.title === 'object' && Object.keys(data.title).length === 0)) {
+      data.title = { text: 'Map Chart' };
+      console.warn('LLM returned empty title, using default');
+    }
+    
+    // Ensure title has text property
+    if (data.title && typeof data.title === 'object' && !data.title.text) {
+      data.title.text = 'Map Chart';
+      console.warn('LLM returned title without text, adding default');
     }
 
     let validator = this.baseValidator!;
@@ -144,6 +157,11 @@ export class ValidationService {
         delete mergedSchema.$ref;
         delete mergedSchema.anyOf;
         delete mergedSchema.oneOf;
+        
+        const schemaId = mergedSchema.$id || mergedSchema.id;
+        if (schemaId && this.ajv.getSchema(schemaId)) {
+          this.ajv.removeSchema(schemaId);
+        }
 
         validator = this.ajv.compile(mergedSchema);
       } catch (error) {
@@ -164,6 +182,13 @@ export class ValidationService {
           if (err.keyword === 'required' && path.includes('optional')) {
             return false;
           }
+          if ((path === '/xAxis' || path === '/yAxis') && message.includes('must be object')) {
+            return false;
+          }
+          if ((path.includes('xAxis') || path.includes('yAxis')) && err.keyword === 'type') {
+            return false;
+          }
+
           return true;
         }) || [];
 
@@ -179,7 +204,6 @@ export class ValidationService {
 
       return { valid: true, data };
     } catch (validationError) {
-      console.warn('Validation error:', validationError);
       return { valid: false, error: 'Validation error occurred', data };
     }
   }

@@ -62,7 +62,11 @@
       "line-step"
     ],
     "map": [
-      "china-map"
+      "china-map",
+      "egypt-map",
+      "saudi-map", 
+      "uae-map",
+      "world-regions"
     ],
     "parallel": [
       "parallel-with-multiple-lines"

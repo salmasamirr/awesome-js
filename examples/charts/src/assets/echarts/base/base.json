@@ -7,8 +7,11 @@
       "type": "object",
       "properties": {
         "text": { "type": "string" },
-        "subtext": { "type": "string" }
-      }
+        "subtext": { "type": "string" },
+        "left": { "type": "string" },
+        "top": { "type": "string" }
+      },
+      "required": ["text"]
     },
     "tooltip": { "type": "object" },
     "legend": { "type": "object" },

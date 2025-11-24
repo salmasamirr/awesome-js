@@ -1,17 +1,49 @@
 {
-    "type": "map",
+    "title": {
+        "text": "Sales Data Map",
+        "left": "center"
+    },
+    "tooltip": {
+        "trigger": "item",
+        "formatter": "{b}: {c}"
+    },
+    "visualMap": {
+        "min": 0,
+        "max": 1000,
+        "left": "left",
+        "top": "bottom",
+        "text": ["High", "Low"],
+        "calculable": true,
+        "inRange": {
+            "color": ["#e0ffff", "#006edd"]
+        }
+    },
     "series": [
         {
             "type": "map",
-            "map": "china",
+            "map": "world",
+            "roam": true,
+            "emphasis": {
+                "itemStyle": {
+                    "areaColor": "#ff6b6b"
+                }
+            },
             "data": [
                 {
-                    "name": "Beijing",
-                    "value": 200
+                    "name": "China",
+                    "value": 850
                 },
                 {
-                    "name": "Shanghai",
-                    "value": 300
+                    "name": "United States",
+                    "value": 720
+                },
+                {
+                    "name": "India",
+                    "value": 650
+                },
+                {
+                    "name": "Brazil",
+                    "value": 430
                 }
             ]
         }

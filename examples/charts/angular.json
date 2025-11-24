@@ -90,7 +90,8 @@
               "buildTarget": "charts_example:build:production"
             },
             "development": {
-              "buildTarget": "charts_example:build:development"
+              "buildTarget": "charts_example:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

@@ -172,11 +172,7 @@ STRICT JSON FORMAT RULES:
 - NO schema properties like $schema, $id, properties, required
 - NO markdown code blocks or backticks
 
-MANDATORY STRUCTURE:
-{
-  "title": {"text": "Chart Title"},
-  "series": [{"type": "${actualSeriesType}", "data": [...]}]
-}
+${this.getMandatoryStructure(chartType, actualSeriesType)}
 
 CRITICAL PROPERTY FORMATS:
 - title: OBJECT {"text": "..."} NEVER array
@@ -200,6 +196,8 @@ LEGEND RULES:
 
 ${chartType === 'map' ? 'MAP CHART CRITICAL RULES:\n- ABSOLUTELY NO "mapType" property - use "map" instead\n- ABSOLUTELY NO "legend" property\n- ABSOLUTELY NO "xAxis" or "yAxis" properties\n- ALWAYS include "visualMap" for color coding data values\n- Data format: [{"name": "CountryName", "value": number}]\n- Generate realistic geographic data relevant to user query\n- Use "world" as default map value\n- Include tooltip with proper formatting\n- Enable roam for user interaction' : ''}
 
+${chartType === 'heatmap' ? 'HEATMAP CHART CRITICAL RULES:\n- ABSOLUTELY REQUIRED: xAxis, yAxis, visualMap, and series\n- ABSOLUTELY NO "legend" property\n- Data format: [[x_index, y_index, value], [x_index, y_index, value], ...]\n- xAxis and yAxis must have "type": "category" and "data" arrays\n- visualMap must have min, max, and calculable properties\n- Generate realistic data with proper x,y,value coordinates' : ''}
+
 ${areaChartNote ? 'AREA CHART: Use series type "line" with areaStyle property' : ''}
 
 Create realistic data matching user requirements. Generate professional, valid ECharts JSON only.`;
@@ -215,7 +213,8 @@ ${JSON.stringify(example, null, 2)}`;
     });
 
     if (chatHistory && chatHistory.length > 0) {
-      for (const msg of chatHistory) {
+      const relevantHistory = this.filterRelevantChatHistory(chatHistory, query, chartType);
+      for (const msg of relevantHistory) {
         if (!(msg.sender === 'user' && msg.text.trim() === query.trim())) {
           messages.push({
             role: msg.sender === 'user' ? 'user' : 'assistant',
@@ -276,6 +275,78 @@ A complete ECharts configuration in valid JSON format that accurately represents
   }
 
 
+  private getMandatoryStructure(chartType: string, actualSeriesType: string): string {
+    if (chartType === 'heatmap') {
+      return `MANDATORY STRUCTURE:
+{
+  "title": {"text": "Chart Title"},
+  "xAxis": {"type": "category", "data": ["Category1", "Category2", ...]},
+  "yAxis": {"type": "category", "data": ["Row1", "Row2", ...]},
+  "visualMap": {"min": 0, "max": 100, "calculable": true},
+  "series": [{"type": "heatmap", "data": [[x,y,value], [x,y,value], ...]}]
+}`;
+    } else if (chartType === 'map') {
+      return `MANDATORY STRUCTURE:
+{
+  "title": {"text": "Chart Title"},
+  "visualMap": {"min": 0, "max": 1000, "calculable": true},
+  "series": [{"type": "map", "map": "world", "data": [{"name": "Country", "value": 100}]}]
+}`;
+    } else {
+      return `MANDATORY STRUCTURE:
+{
+  "title": {"text": "Chart Title"},
+  "series": [{"type": "${actualSeriesType}", "data": [...]}]
+}`;
+    }
+  }
+
+  private filterRelevantChatHistory(chatHistory: ChatMessage[], currentQuery: string, currentChartType: string): ChatMessage[] {
+    
+    const maxHistoryLength = 4; 
+    
+    const relevantMessages: ChatMessage[] = [];
+    
+    for (let i = chatHistory.length - 1; i >= 0 && relevantMessages.length < maxHistoryLength; i--) {
+      const msg = chatHistory[i];
+      
+      if (msg.sender === 'user') {
+        const isCurrentChartTypeRequest = this.isChartTypeRequest(msg.text, currentChartType);
+        const isSimilarRequest = this.isSimilarRequest(msg.text, currentQuery);
+        
+        if (isCurrentChartTypeRequest || isSimilarRequest) {
+          relevantMessages.unshift(msg);
+        }
+      } else if (msg.sender === 'ai') {
+        if (relevantMessages.length > 0 && relevantMessages[0].sender === 'user') {
+          relevantMessages.unshift(msg);
+        }
+      }
+    }
+    
+    return relevantMessages;
+  }
+
+  private isChartTypeRequest(message: string, chartType: string): boolean {
+    const lowerMessage = message.toLowerCase();
+    const lowerChartType = chartType.toLowerCase();
+    return lowerMessage.includes(lowerChartType) || lowerMessage.includes(`${lowerChartType} chart`);
+  }
+
+  private isSimilarRequest(message: string, currentQuery: string): boolean {
+    const messageWords = message.toLowerCase().split(' ');
+    const queryWords = currentQuery.toLowerCase().split(' ');
+    
+    let similarWords = 0;
+    for (const word of queryWords) {
+      if (word.length > 3 && messageWords.includes(word)) {
+        similarWords++;
+      }
+    }
+    
+    return similarWords >= Math.max(2, queryWords.length / 3);
+  }
+
   private getChartSpecificRules(chartType: string): string {
     const rules = {
       pie: 'NO xAxis or yAxis needed, only series with data array',
@@ -286,7 +357,7 @@ A complete ECharts configuration in valid JSON format that accurately represents
       sankey: 'NO xAxis, yAxis, or legend needed - only series with data (nodes) and links arrays',
       treemap: 'NO legend needed, include data array with hierarchical structure',
       sunburst: 'NO legend needed, include data array with hierarchical structure',
-      heatmap: 'NO legend property allowed, NO series names needed - use xAxis and yAxis for categories, data format: [[x,y,value]]',
+      heatmap: 'REQUIRED: xAxis, yAxis, visualMap properties - use xAxis and yAxis for categories, data format: [[x,y,value]]',
       boxplot: 'NO legend property allowed, include xAxis and yAxis as OBJECTS, data format: array of 5-number summaries [[min,Q1,median,Q3,max]]',
       parallel: 'NO xAxis, yAxis, or legend needed - use parallelAxis array to define dimensions and series with coordinate data format [[dim0,dim1,dim2...]]',
       line: 'xAxis and yAxis as OBJECTS (not arrays), data as simple numbers [150,230,224]',

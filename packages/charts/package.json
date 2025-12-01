@@ -21,6 +21,7 @@
   "sideEffects": false,
   "devDependencies": {
     "@types/echarts": "^4.9.22",
+    "baseline-browser-mapping": "^2.8.32",
     "ng-packagr": "^20.3.0"
   }
 }

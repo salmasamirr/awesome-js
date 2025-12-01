@@ -64,9 +64,7 @@
     "map": [
       "china-map",
       "egypt-map",
-      "saudi-map", 
-      "uae-map",
-      "world-regions"
+      "usa-map"
     ],
     "parallel": [
       "parallel-with-multiple-lines"

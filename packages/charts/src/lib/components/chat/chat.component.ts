@@ -128,7 +128,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.messages.push({ sender: 'user', text: msg });
     this.loading = true;
 
-    const chartSub = this.llm.generateChartOptions(msg, this.selectedChartType, this.selectedVariation, this.messages)
+    const chartSub = this.llm.generateChartOptions(msg, this.selectedChartType, this.selectedVariation)
       .subscribe({
         next: (options) => {
           this.chartGenerated.emit(options);

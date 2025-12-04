@@ -1,8 +1,26 @@
 {
-    "title": { "text": "Basic Scatter Example" },
-    "xAxis": {},
-    "yAxis": {},
-    "series": [
-      { "type": "scatter", "data": [[10, 8], [20, 15], [30, 25]] }
-    ]
+    "title": { 
+        "text": "Basic Scatter Chart",
+        "left": "center"
+    },
+    "xAxis": {
+        "type": "value",
+        "name": "X Values",
+        "nameLocation": "middle",
+        "nameGap": 30
+    },
+    "yAxis": {
+        "type": "value", 
+        "name": "Y Values",
+        "nameLocation": "middle",
+        "nameGap": 40
+    },
+    "series": [{
+        "type": "scatter",
+        "symbolSize": 8,
+        "data": [
+            [1, 120], [2, 180], [3, 150], [4, 200], 
+            [5, 250], [6, 190], [7, 280]
+        ]
+    }]
 }

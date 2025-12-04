@@ -67,7 +67,7 @@ export class LLMService {
 
 
 
-  generateChartOptions(query: string, chartType: string = 'bar', variation?: string, chatHistory?: ChatMessage[]): Observable<any> {
+  generateChartOptions(query: string, chartType: string = 'bar', variation?: string): Observable<any> {
     const schemaPromise = Promise.all([
       this.schemaManager.loadCombinedSchema(chartType, variation),
       this.schemaManager.loadExample(chartType, variation)
@@ -75,7 +75,7 @@ export class LLMService {
 
     return from(schemaPromise).pipe(
       switchMap(([schema, example]) => {
-        const messages = this.generatePrompt(query, chartType, variation, schema, example, chatHistory);
+        const messages = this.generatePrompt(query, chartType, variation, schema, example);
         const body = {
           messages: messages,
           model: this.config.model,
@@ -141,11 +141,13 @@ export class LLMService {
             console.error('HTTP error during chart generation with LM Studio:', error);
 
             if (error.status === 0) {
-              return throwError(() => new Error('Cannot connect to LM Studio. Please ensure LM Studio is running on http://localhost:1234 and a model is loaded.'));
+              return throwError(() => new Error('Cannot connect to LM Studio. Please ensure LM Studio is running on http://localhost:1234 and a model is loaded. Check if CORS is enabled in LM Studio settings.'));
             } else if (error.status === 404) {
               return throwError(() => new Error('LM Studio endpoint not found. Please check if LM Studio is running with the correct API endpoint.'));
             } else if (error.status === 500) {
               return throwError(() => new Error('LM Studio internal error. Please check if a model is properly loaded.'));
+            } else if (error.status === 422) {
+              return throwError(() => new Error('Invalid request to LM Studio. The model name might be incorrect or the request format is wrong.'));
             }
 
             return throwError(() => new Error(`Failed to connect to LM Studio: ${error.message || error}`));
@@ -158,13 +160,13 @@ export class LLMService {
     );
   }
 
-  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any, chatHistory?: ChatMessage[]): any[] {
+  private generatePrompt(query: string, chartType: string, variation?: string, schema?: any, example?: any): any[] {
     const messages: any[] = [];
 
     const actualSeriesType = chartType === 'area' ? 'line' : chartType;
     const areaChartNote = chartType === 'area' ? '\nIMPORTANT: For area charts, use series type "line" with areaStyle property.' : '';
 
-    let systemPrompt = `You are an ECharts expert. Generate ONLY valid JSON configuration for "${chartType}" chart.
+    let systemPrompt = `You are an ECharts expert. Generate ONLY valid JSON configuration for "${chartType}" chart.${chartType === 'scatter' ? '\n\n🚨 SCATTER CHART CRITICAL WARNING:\n- NEVER return empty title object like {"title": {}}\n- ALWAYS include complete title: {"title": {"text": "Meaningful Chart Title"}}\n- FORBIDDEN: tooltip, legend properties\n- REQUIRED: proper axis labels and coordinate pair data [[x,y], [x,y]]' : ''}
 
 STRICT JSON FORMAT RULES:
 - Return ONLY JSON object starting with { and ending with }
@@ -172,15 +174,29 @@ STRICT JSON FORMAT RULES:
 - NO schema properties like $schema, $id, properties, required
 - NO markdown code blocks or backticks
 
-${this.getMandatoryStructure(chartType, actualSeriesType)}
-
 CRITICAL PROPERTY FORMATS:
-- title: OBJECT {"text": "..."} NEVER array
+- title: OBJECT {"text": "..."} NEVER array - ALWAYS include meaningful title text
 - xAxis: OBJECT (not array) like {"type": "category", "data": [...]}
 - yAxis: OBJECT (not array) like {"type": "value"}
-- legend: OBJECT {"data": ["series_names"]} ONLY if chart has multiple named series
 - series: ARRAY of objects with type "${actualSeriesType}"
-- For ${chartType} charts: ${this.getChartSpecificRules(chartType)}
+
+MANDATORY PROPERTIES - ALWAYS INCLUDE:
+- title: MUST have "text" property with meaningful chart title
+- xAxis: MUST be object (not array)
+- yAxis: MUST be object (not array)
+- series: MUST be array with proper data format
+
+OPTIONAL PROPERTIES (only include when explicitly needed):
+- legend: OBJECT {"data": ["series_names"]} ONLY for multi-series charts with names
+- For ${chartType} charts: ${this.getChartSpecificRules(chartType)}${chartType === 'radar' ? '\n\nRADAR CHART AXIS OPTIMIZATION:\n- Use round numbers for max values (100, 500, 1000, 5000, 10000)\n- Avoid irregular max values that cause tick readability issues\n- Choose max values that allow clean division by 5-10 tick marks' : ''}
+
+FORBIDDEN PROPERTIES - NEVER INCLUDE:
+- tooltip (will be added automatically)
+- toolbox (not needed)
+- calculable (deprecated)
+- normal (deprecated style hierarchy)
+- textStyle (deprecated, use label properties directly)
+- emphasis (use modern format)
 
 AXIS RULES:
 - xAxis and yAxis must be OBJECTS, never arrays
@@ -188,11 +204,12 @@ AXIS RULES:
 - NOT coordinate pairs like [[x,y], [x,y]]
 - For sankey, pie, funnel, gauge, treemap, sunburst, map charts: NO xAxis or yAxis needed
 
-LEGEND RULES:
-- ONLY include legend if chart has multiple named series (2+ series with names)
-- NEVER include legend for: heatmap, scatter, treemap, sunburst, sankey, map, boxplot, parallel, or any single series chart
-- If only 1 series exists: NO legend property at all
-- Legend data must match actual series names
+LEGEND RULES - STRICT COMPLIANCE REQUIRED:
+- NEVER include legend property for: scatter, heatmap, treemap, sunburst, sankey, map, boxplot, parallel
+- SCATTER CHARTS: FORBIDDEN to include legend property - omit completely
+- Single series charts: NO legend property 
+- ONLY add legend when: multiple series (2+) with different names exist
+- Legend data must exactly match series names when used
 
 ${chartType === 'map' ? 'MAP CHART CRITICAL RULES:\n- ABSOLUTELY NO "mapType" property - use "map" instead\n- ABSOLUTELY NO "legend" property\n- ABSOLUTELY NO "xAxis" or "yAxis" properties\n- ALWAYS include "visualMap" for color coding data values\n- Data format: [{"name": "CountryName", "value": number}]\n- Generate realistic geographic data relevant to user query\n- Use "world" as default map value\n- Include tooltip with proper formatting\n- Enable roam for user interaction' : ''}
 
@@ -211,18 +228,6 @@ ${JSON.stringify(example, null, 2)}`;
       role: "system",
       content: systemPrompt
     });
-
-    if (chatHistory && chatHistory.length > 0) {
-      const relevantHistory = this.filterRelevantChatHistory(chatHistory, query, chartType);
-      for (const msg of relevantHistory) {
-        if (!(msg.sender === 'user' && msg.text.trim() === query.trim())) {
-          messages.push({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.text
-          });
-        }
-      }
-    }
 
     const descriptiveUserMessage = this.createEnhancedDescriptiveUserMessage(query, chartType, variation);
 
@@ -274,86 +279,13 @@ A complete ECharts configuration in valid JSON format that accurately represents
     return null;
   }
 
-
-  private getMandatoryStructure(chartType: string, actualSeriesType: string): string {
-    if (chartType === 'heatmap') {
-      return `MANDATORY STRUCTURE:
-{
-  "title": {"text": "Chart Title"},
-  "xAxis": {"type": "category", "data": ["Category1", "Category2", ...]},
-  "yAxis": {"type": "category", "data": ["Row1", "Row2", ...]},
-  "visualMap": {"min": 0, "max": 100, "calculable": true},
-  "series": [{"type": "heatmap", "data": [[x,y,value], [x,y,value], ...]}]
-}`;
-    } else if (chartType === 'map') {
-      return `MANDATORY STRUCTURE:
-{
-  "title": {"text": "Chart Title"},
-  "visualMap": {"min": 0, "max": 1000, "calculable": true},
-  "series": [{"type": "map", "map": "world", "data": [{"name": "Country", "value": 100}]}]
-}`;
-    } else {
-      return `MANDATORY STRUCTURE:
-{
-  "title": {"text": "Chart Title"},
-  "series": [{"type": "${actualSeriesType}", "data": [...]}]
-}`;
-    }
-  }
-
-  private filterRelevantChatHistory(chatHistory: ChatMessage[], currentQuery: string, currentChartType: string): ChatMessage[] {
-    
-    const maxHistoryLength = 4; 
-    
-    const relevantMessages: ChatMessage[] = [];
-    
-    for (let i = chatHistory.length - 1; i >= 0 && relevantMessages.length < maxHistoryLength; i--) {
-      const msg = chatHistory[i];
-      
-      if (msg.sender === 'user') {
-        const isCurrentChartTypeRequest = this.isChartTypeRequest(msg.text, currentChartType);
-        const isSimilarRequest = this.isSimilarRequest(msg.text, currentQuery);
-        
-        if (isCurrentChartTypeRequest || isSimilarRequest) {
-          relevantMessages.unshift(msg);
-        }
-      } else if (msg.sender === 'ai') {
-        if (relevantMessages.length > 0 && relevantMessages[0].sender === 'user') {
-          relevantMessages.unshift(msg);
-        }
-      }
-    }
-    
-    return relevantMessages;
-  }
-
-  private isChartTypeRequest(message: string, chartType: string): boolean {
-    const lowerMessage = message.toLowerCase();
-    const lowerChartType = chartType.toLowerCase();
-    return lowerMessage.includes(lowerChartType) || lowerMessage.includes(`${lowerChartType} chart`);
-  }
-
-  private isSimilarRequest(message: string, currentQuery: string): boolean {
-    const messageWords = message.toLowerCase().split(' ');
-    const queryWords = currentQuery.toLowerCase().split(' ');
-    
-    let similarWords = 0;
-    for (const word of queryWords) {
-      if (word.length > 3 && messageWords.includes(word)) {
-        similarWords++;
-      }
-    }
-    
-    return similarWords >= Math.max(2, queryWords.length / 3);
-  }
-
   private getChartSpecificRules(chartType: string): string {
     const rules = {
       pie: 'NO xAxis or yAxis needed, only series with data array',
       funnel: 'NO xAxis or yAxis needed, only series with data array',
       gauge: 'NO xAxis or yAxis needed, include progress and detail objects',
       graph: 'include layout, data, and links properties in series',
-      radar: 'include indicator array for radar dimensions',
+      radar: 'include indicator array for radar dimensions with proper min/max values that avoid axis tick warnings',
       sankey: 'NO xAxis, yAxis, or legend needed - only series with data (nodes) and links arrays',
       treemap: 'NO legend needed, include data array with hierarchical structure',
       sunburst: 'NO legend needed, include data array with hierarchical structure',
@@ -363,6 +295,14 @@ A complete ECharts configuration in valid JSON format that accurately represents
       line: 'xAxis and yAxis as OBJECTS (not arrays), data as simple numbers [150,230,224]',
       bar: 'xAxis and yAxis as OBJECTS (not arrays), data as simple numbers [150,230,224]',
       area: 'xAxis and yAxis as OBJECTS (not arrays), data as simple numbers [150,230,224]',
+      scatter: `SCATTER CHART ABSOLUTE RULES:
+- NO legend property (strictly forbidden)
+- MANDATORY: title with meaningful text like "Data Scatter Chart"
+- xAxis and yAxis MUST be OBJECTS with proper labels
+- Data MUST be coordinate pairs ONLY: [[x,y], [x,y], ...]
+- NEVER use single-value arrays like [10,20,30]
+- NEVER use objects like {x:10, y:20}
+- Include reasonable symbolSize automatically`,
       map: 'NO xAxis, yAxis, or legend needed - use ONLY "map" property NEVER "mapType", include visualMap for data range, data format: [{"name": "Country", "value": number}], generate realistic geographic data based on user query'
     };
     return rules[chartType as keyof typeof rules] || 'include appropriate xAxis and yAxis as OBJECTS';

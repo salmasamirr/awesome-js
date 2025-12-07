@@ -1,16 +1,84 @@
 {
-  "object": "map",
+  "type": "object",
   "properties": {
+    "title": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "left": { "type": "string" },
+        "top": { "type": "string" }
+      },
+      "required": ["text"]
+    },
+    "tooltip": {
+      "type": "object",
+      "properties": {
+        "trigger": { "enum": ["item", "axis"] },
+        "formatter": { "type": "string" }
+      }
+    },
+    "visualMap": {
+      "type": "object",
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "left": { "type": "string" },
+        "top": { "type": "string" },
+        "text": { "type": "array", "items": { "type": "string" } },
+        "calculable": { "type": "boolean" }
+      }
+    },
     "series": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
           "type": { "const": "map" },
-          "map": { "type": "string" },
-          "data": { "type": "array" }
-        }
+          "map": { 
+            "type": "string",
+            "enum": ["world", "china"],
+            "default": "world",
+            "description": "Available maps: world, china"
+          },
+          "roam": { 
+            "type": "boolean",
+            "description": "Enable zoom and pan interactions"
+          },
+          "emphasis": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "object", 
+                "properties": {
+                  "show": { "type": "boolean" }
+                }
+              }
+            }
+          },
+          "itemStyle": {
+            "type": "object",
+            "properties": {
+              "areaColor": { "type": "string" },
+              "borderColor": { "type": "string" },
+              "borderWidth": { "type": "number" }
+            }
+          },
+          "data": { 
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "value": { "type": "number" }
+              },
+              "required": ["name", "value"]
+            }
+          }
+        },
+        "required": ["type", "map", "data"]
       }
     }
-  }
+  },
+  "required": ["title", "series", "visualMap", "tooltip"],
+  "additionalProperties": true
 }

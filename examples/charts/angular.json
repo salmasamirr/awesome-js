@@ -55,6 +55,7 @@
               }
             ],
             "styles": [
+              "src/custom-theme.scss",
               "src/styles.css"
             ]
           },
@@ -89,7 +90,8 @@
               "buildTarget": "charts_example:build:production"
             },
             "development": {
-              "buildTarget": "charts_example:build:development"
+              "buildTarget": "charts_example:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

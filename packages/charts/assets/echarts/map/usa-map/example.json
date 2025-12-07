@@ -1,0 +1,30 @@
+{
+  "type": "map",
+  "title": {
+    "text": "USA States",
+    "left": "center"
+  },
+  "tooltip": {
+    "trigger": "item",
+    "formatter": "{b}: {c}"
+  },
+  "series": [
+    {
+      "type": "map",
+      "map": "usa",
+      "roam": true,
+      "emphasis": {
+        "label": {
+          "show": true
+        }
+      },
+      "data": [
+        { "name": "California", "value": 39500000 },
+        { "name": "Texas", "value": 29000000 },
+        { "name": "Florida", "value": 21500000 },
+        { "name": "New York", "value": 19400000 },
+        { "name": "Illinois", "value": 12700000 }
+      ]
+    }
+  ]
+}

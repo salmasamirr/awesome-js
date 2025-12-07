@@ -1,10 +1,23 @@
 {
-  "variation": "filled-radar",
-  "extra": {
-    "series": [
-      {
-        "areaStyle": {}
-      }
+  "type": "radar",
+  "radar": {
+    "indicator": [
+      { "name": "Sales", "max": 6500 },
+      { "name": "Administration", "max": 16000 },
+      { "name": "Technology", "max": 30000 }
     ]
-  }
+  },
+  "variation": "filled-radar",
+  "series": [
+    {
+      "type": "radar",
+      "areaStyle": {},
+      "data": [
+        {
+          "value": [4200, 3000, 20000],
+          "name": "Data"
+        }
+      ]
+    }
+  ]
 }

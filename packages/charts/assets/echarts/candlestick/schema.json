@@ -4,16 +4,28 @@
   "properties": {
     "type": { "const": "candlestick" },
     "xAxis": { "type": "object" },
-    "yAxis": { "type": "object" },
+    "yAxis": {
+      "anyOf": [
+        { "type": "object" },
+        { 
+          "type": "array",
+          "items": { "type": "object" },
+          "minItems": 1
+        }
+      ]
+    },
     "series": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "type": { "const": "candlestick" }
+          "type": { 
+            "enum": ["candlestick", "line", "bar"]  
+          }
         },
         "required": ["type"]
-      }
+      },
+      "minItems": 1
     }
   },
   "required": ["type", "xAxis", "yAxis", "series"]

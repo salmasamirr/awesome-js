@@ -1,4 +1,8 @@
 {
+  "type": "heatmap",
+  "xAxis": { "type": "category" },
+  "yAxis": { "type": "category" },
+  "visualMap": { "min": 0, "max": 10 },
   "variation": "geo-heatmap",
   "extra": {
     "series": [

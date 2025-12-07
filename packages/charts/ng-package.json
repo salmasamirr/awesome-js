@@ -4,9 +4,17 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
+  "assets": [
+    {
+      "glob": "**/*",
+      "input": "./assets",
+      "output": "./assets"
+    }
+  ],
   "allowedNonPeerDependencies": [
     "ajv",
     "ajv-formats",
-    "@angular/forms"
+    "@angular/forms",
+    "@angular/cli"
   ]
 }

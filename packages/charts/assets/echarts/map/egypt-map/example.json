@@ -1,0 +1,30 @@
+{
+  "type": "map",
+  "title": {
+    "text": "Egypt Governorates",
+    "left": "center"
+  },
+  "tooltip": {
+    "trigger": "item",
+    "formatter": "{b}: {c}"
+  },
+  "series": [
+    {
+      "type": "map",
+      "map": "egypt",
+      "roam": true,
+      "emphasis": {
+        "label": {
+          "show": true
+        }
+      },
+      "data": [
+        { "name": "Cairo", "value": 10000000 },
+        { "name": "Alexandria", "value": 5200000 },
+        { "name": "Giza", "value": 8800000 },
+        { "name": "Luxor", "value": 1300000 },
+        { "name": "Aswan", "value": 1500000 }
+      ]
+    }
+  ]
+}

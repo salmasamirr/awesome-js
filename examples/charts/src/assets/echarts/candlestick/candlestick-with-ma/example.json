@@ -1,8 +1,32 @@
 {
-  "title": "Candlestick with MA",
+  "type": "candlestick",
+  "title": {
+    "text": "Candlestick with MA"
+  },
+  "xAxis": {
+    "type": "category",
+    "data": ["Day1", "Day2", "Day3", "Day4", "Day5"]
+  },
+  "yAxis": {
+    "type": "value",
+    "scale": true
+  },
   "series": [
-    { "type": "candlestick" },
-    { "type": "line", "name": "MA5" },
-    { "type": "line", "name": "MA10" }
+    {
+      "type": "candlestick",
+      "data": [
+        [100, 120, 90, 110],
+        [110, 130, 100, 120],
+        [120, 140, 110, 130],
+        [130, 150, 120, 140],
+        [140, 160, 130, 150]
+      ],
+      "name": "Stock Price"
+    },
+    {
+      "type": "line",
+      "name": "MA5",
+      "data": [105, 115, 125, 135, 145]
+    }
   ]
 }

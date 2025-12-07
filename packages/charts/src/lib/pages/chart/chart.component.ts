@@ -2,6 +2,47 @@ import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatComponent } from '../../components/chat/chat.component';
+import { MapChartService } from '../../services/map-chart.service';
+
+interface ChartRenderStrategy {
+  processChartOptions(options: any, echarts: any): Promise<any>;
+  initializeChart?(echarts: any): Promise<void>;
+}
+
+class MapChartRenderStrategy implements ChartRenderStrategy {
+  constructor(private mapChartService: MapChartService) { }
+
+  async initializeChart(echarts: any): Promise<void> {
+    await this.mapChartService.registerMapWithECharts(echarts).toPromise();
+  }
+
+  async processChartOptions(options: any, echarts: any): Promise<any> {
+    return this.mapChartService.processMapChartOptions(options);
+  }
+}
+
+class DefaultChartRenderStrategy implements ChartRenderStrategy {
+  async processChartOptions(options: any, echarts: any): Promise<any> {
+    return options;
+  }
+}
+
+class ChartRenderStrategyFactory {
+  constructor(private mapChartService: MapChartService) { }
+
+  async createStrategy(chartType: string, echarts?: any): Promise<ChartRenderStrategy> {
+    switch (chartType.toLowerCase()) {
+      case 'map':
+        const mapStrategy = new MapChartRenderStrategy(this.mapChartService);
+        if (echarts && mapStrategy.initializeChart) {
+          await mapStrategy.initializeChart(echarts);
+        }
+        return mapStrategy;
+      default:
+        return new DefaultChartRenderStrategy();
+    }
+  }
+}
 
 @Component({
   selector: 'awesome-chart',
@@ -18,7 +59,12 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
   isLoading = false;
   isChatClosed = false;
 
-  constructor() { }
+  private strategyFactory: ChartRenderStrategyFactory;
+  private currentChartType: string = 'bar';
+
+  constructor(private mapChartService: MapChartService) {
+    this.strategyFactory = new ChartRenderStrategyFactory(this.mapChartService);
+  }
 
   ngAfterViewInit() {
     setTimeout(() => {
@@ -31,14 +77,14 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
       try {
         await this.loadECharts();
         if (this.echarts) {
+          await this.strategyFactory.createStrategy(this.currentChartType, this.echarts);
+
           await this.waitForDOMReady();
           this.chartInstance = this.echarts.init(this.chartContainer.nativeElement);
-          const defaultOptions = {
+          this.chartInstance.setOption({
             backgroundColor: 'transparent',
             animation: true
-          };
-
-          this.chartInstance.setOption(defaultOptions, true);
+          }, true);
         }
       } catch (error) {
         console.error('Error initializing chart:', error);
@@ -74,23 +120,27 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  updateChart(options: any) {
+  async updateChart(options: any) {
     if (!this.chartInstance || !options) return;
 
     try {
-      setTimeout(() => {
-        this.chartInstance.setOption(options, true, true);
+      this.currentChartType = this.detectChartType(options);
+      
+      const strategy = await this.strategyFactory.createStrategy(this.currentChartType, this.echarts);
+      const processedOptions = await strategy.processChartOptions(options, this.echarts);
 
-        setTimeout(() => {
-          if (this.chartInstance) {
-            this.chartInstance.resize();
-          }
-        }, 50);
-      }, 0);
+      this.chartInstance.setOption(processedOptions, true, true);
+      this.chartInstance.resize();
     } catch (error) {
-      console.error('Error updating chart:', error);
-      this.showSimpleError();
+      console.error('❌ Error updating chart:', error);
     }
+  }
+
+  private detectChartType(options: any): string {
+    if (options?.series && Array.isArray(options.series) && options.series.length > 0) {
+      return options.series[0].type || 'bar';
+    }
+    return 'bar';
   }
 
   async onChartGenerated(options: any) {
@@ -100,9 +150,6 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     this.updateChart(options);
   }
 
-  private showSimpleError() {
-    console.warn('Chart failed - ensure LLM sends valid ECharts options');
-  }
 
   ngOnDestroy() {
     if (this.chartInstance) {
@@ -119,4 +166,3 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     }, 300);
   }
 }
-

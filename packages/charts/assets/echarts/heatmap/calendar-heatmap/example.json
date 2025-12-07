@@ -1,4 +1,8 @@
 {
+  "type": "heatmap",
+  "xAxis": { "type": "category" },
+  "yAxis": { "type": "category" },
+  "visualMap": { "min": 0, "max": 10 },
   "variation": "calendar_heatmap",
   "extra": {
     "calendar": { "range": "2025", "cellSize": [20, 20] }

@@ -1,0 +1,18 @@
+{
+  "name": "behaviours",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@angular/common": "^21.0.6",
+    "@angular/core": "^21.0.6",
+    "ng-behaviours": "^11.0.4",
+    "rxjs": "^7.8.2"
+  }
+}
